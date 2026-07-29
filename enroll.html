@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تأكيد الاشتراك | الظلال</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="auth.css">
+<link rel="stylesheet" href="enroll.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<!-- ============ حارس الوصول ============ -->
+<div class="access-guard" id="accessGuard" style="display:none; max-width:480px; margin:90px auto; text-align:center; padding:40px 30px; background:var(--cream-2); border-radius:var(--radius-lg); border:1px solid color-mix(in srgb, var(--gold) 40%, transparent);">
+  <h1 id="guardTitle" style="font-family:var(--font-display); color:var(--maroon); margin:0 0 12px;">جاري التحقق...</h1>
+  <p id="guardText" style="color:var(--ink-soft); margin:0 0 24px;">استنى لحظة من فضلك</p>
+  <a href="login.html" class="btn btn-solid" id="guardBtn" style="display:none">تسجيل الدخول</a>
+</div>
+
+<div class="enroll-page" id="pageContent" style="display:none">
+
+  <a href="index.html" class="enroll-logo">
+    <span class="logo-icon" aria-hidden="true">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+        <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+        <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+      </svg>
+    </span>
+    <span class="logo-text">الظلال</span>
+  </a>
+
+  <!-- ============ فورم الدفع ============ -->
+  <div class="enroll-card" id="formCard">
+    <h1>تأكيد الاشتراك</h1>
+    <p class="enroll-sub">حوّل قيمة الكورس، واكتب بيانات التحويل عشان نفعّل اشتراكك</p>
+
+    <div class="enroll-course-summary" id="courseSummary">
+      <h3 id="courseTitle">جاري التحميل...</h3>
+      <div>
+        <span class="amount" id="coursePrice">—</span>
+        <span class="currency" id="courseCurrency"></span>
+      </div>
+    </div>
+
+    <div class="vf-instructions">
+      <h4>📱 خطوات الدفع عبر فودافون كاش</h4>
+      <ol>
+        <li>حوّل المبلغ على الرقم التالي:</li>
+      </ol>
+      <div class="vf-number">01xxxxxxxxx</div>
+      <ol start="2">
+        <li>بعد التحويل، اكتب رقم الهاتف اللي حوّلت منه واسمك في الفورم تحت</li>
+        <li>الطلب هيتراجع من الإدارة وهيتفعّل الكورس خلال وقت قصير</li>
+      </ol>
+    </div>
+
+    <form class="enroll-form" id="enrollForm">
+      <label>
+        <span>اسم الشخص اللي عمل التحويل</span>
+        <input type="text" name="transferName" placeholder="اكتب الاسم اللي طلع في التحويل" required>
+      </label>
+      <label>
+        <span>رقم الهاتف اللي تم التحويل منه</span>
+        <input type="tel" name="transferNumber" placeholder="01xxxxxxxxx" pattern="^01[0-9]{9}$" maxlength="11" required>
+      </label>
+
+      <button type="submit" class="btn btn-solid enroll-submit">تأكيد إرسال بيانات التحويل</button>
+    </form>
+
+    <a href="#" class="enroll-back" id="backLink">رجوع لصفحة الكورسات</a>
+  </div>
+
+  <!-- ============ حالة تم الإرسال ============ -->
+  <div class="enroll-card enroll-success" id="successCard">
+    <div class="icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1>تم استلام طلبك</h1>
+    <p>هنراجع بيانات التحويل ونفعّل اشتراكك بأسرع وقت. تقدر تتابع حالة الطلب من صفحة الكورسات.</p>
+    <a href="#" class="btn btn-solid enroll-submit" id="successBackLink">رجوع لصفحة الكورسات</a>
+  </div>
+
+</div>
+
+<script src="firebase-config.js"></script>
+<script>
+const gradeToPage = { "1": "sec1.html", "2": "sec2.html", "3": "sec3.html" };
+
+const accessGuard = document.getElementById('accessGuard');
+const pageContent = document.getElementById('pageContent');
+const guardTitle = document.getElementById('guardTitle');
+const guardText = document.getElementById('guardText');
+const guardBtn = document.getElementById('guardBtn');
+
+function showGuard(title, text, showLoginBtn){
+  pageContent.style.display = 'none';
+  accessGuard.style.display = 'block';
+  guardTitle.textContent = title;
+  guardText.textContent = text;
+  guardBtn.style.display = showLoginBtn ? 'inline-block' : 'none';
+}
+
+// قراءة معرّف الكورس من الرابط: enroll.html?course=grade1-month1
+const urlParams = new URLSearchParams(window.location.search);
+const courseId = urlParams.get('course');
+
+let currentStudent = null;
+let currentStudentId = null;
+let currentCourse = null;
+
+auth.onAuthStateChanged(async (user) => {
+  if(!courseId){
+    showGuard('لا يوجد كورس محدد', 'ادخل على صفحة الكورسات واختار كورس عشان تشترك فيه.', false);
+    return;
+  }
+
+  if(!user || !user.email || !user.email.endsWith('@elzilal-student.app')){
+    showGuard('لازم تسجل دخول الأول', 'صفحة الاشتراك متاحة للطلاب المسجلين فقط.', true);
+    return;
+  }
+
+  const phone = user.email.replace('@elzilal-student.app', '');
+
+  try{
+    const studentSnap = await db.collection('students').doc(phone).get();
+    if(!studentSnap.exists || studentSnap.data().status !== 'approved'){
+      showGuard('حسابك لسه قيد المراجعة', 'لازم يوافق القسم على حسابك الأول قبل الاشتراك في أي كورس.', false);
+      return;
+    }
+    currentStudent = studentSnap.data();
+    currentStudentId = phone;
+
+    const courseSnap = await db.collection('courses').doc(courseId).get();
+    if(!courseSnap.exists || courseSnap.data().active !== true){
+      showGuard('الكورس غير متاح', 'الكورس ده مش موجود أو مش متاح حاليًا.', false);
+      return;
+    }
+    currentCourse = { id: courseSnap.id, ...courseSnap.data() };
+
+    // منع الطالب من دخول صفحة اشتراك لكورس صف تاني غير صفه
+    if(currentCourse.grade !== currentStudent.grade){
+      showGuard('الكورس ده مش لصفك الدراسي', 'برجاء اختيار كورس من صفحتك الخاصة.', false);
+      return;
+    }
+
+    // لو عنده طلب سابق pending أو approved على نفس الكورس، منمنعوش لكن نوريه تنبيه
+    const existingOrders = await db.collection('orders')
+      .where('uid', '==', user.uid)
+      .where('courseId', '==', courseId)
+      .get();
+
+    const activeOrder = existingOrders.docs.find(d => ['pending','approved'].includes(d.data().status));
+    if(activeOrder){
+      const backUrl = gradeToPage[currentStudent.grade] || 'index.html';
+      alert('عندك بالفعل طلب لنفس الكورس ده. هيتم تحويلك لصفحة الكورسات.');
+      window.location.href = backUrl;
+      return;
+    }
+
+    // عرض بيانات الكورس
+    document.getElementById('courseTitle').textContent = currentCourse.title || '';
+    document.getElementById('coursePrice').textContent = currentCourse.price ?? '';
+    document.getElementById('courseCurrency').textContent = currentCourse.currency || 'جنيه';
+
+    const backUrl = gradeToPage[currentStudent.grade] || 'index.html';
+    document.getElementById('backLink').href = backUrl;
+    document.getElementById('successBackLink').href = backUrl;
+
+    accessGuard.style.display = 'none';
+    pageContent.style.display = 'block';
+
+  }catch(err){
+    console.error(err);
+    showGuard('حصل خطأ', 'مقدرناش نجهز صفحة الاشتراك، حاول تاني.', false);
+  }
+});
+
+document.getElementById('enrollForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form).entries());
+  const submitBtn = form.querySelector('button[type="submit"]');
+
+  if(!/^01[0-9]{9}$/.test(data.transferNumber)){
+    alert('رقم الهاتف غير صحيح، لازم يكون 11 رقم ويبدأ بـ 01.');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'جاري الإرسال...';
+
+  try{
+    await db.collection('orders').add({
+      uid: auth.currentUser.uid,
+      studentId: currentStudentId,
+      studentName: currentStudent.studentName,
+      studentPhone: currentStudentId,
+      grade: currentStudent.grade,
+      courseId: currentCourse.id,
+      courseTitle: currentCourse.title,
+      coursePrice: currentCourse.price,
+      transferName: data.transferName,
+      transferNumber: data.transferNumber,
+      status: 'pending', // pending | approved | rejected | cancelled
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('successCard').classList.add('active');
+
+  }catch(err){
+    console.error(err);
+    alert('حصل خطأ أثناء إرسال الطلب: ' + err.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'تأكيد إرسال بيانات التحويل';
+  }
+});
+</script>
+</body>
+</html>

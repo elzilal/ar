@@ -1,0 +1,25 @@
+/* =========================================================
+   إضافات صفحة طلبات الاشتراك (orders.html)
+   تستخدم نفس أنماط admin.css الأساسية + إضافات بسيطة هنا
+   ========================================================= */
+
+.order-course-tag{
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 700;
+  background: rgba(180,187,121,0.25);
+  color: var(--maroon);
+  margin-inline-end: 8px;
+}
+[data-theme="dark"] .order-course-tag{ color: var(--gold); background: rgba(180,187,121,0.15); }
+
+.order-price-tag{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  color: var(--coral);
+  font-size: .95rem;
+}

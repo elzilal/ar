@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>كورسات أولى ثانوي | الظلال</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="sec.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<!-- ============ حارس الوصول (يظهر لو مفيش صلاحية) ============ -->
+<div class="access-guard" id="accessGuard" style="display:none">
+  <h1 id="guardTitle">لسه بتتحقق من حسابك...</h1>
+  <p id="guardText">استنى لحظة من فضلك</p>
+  <a href="login.html" class="btn btn-solid" id="guardBtn" style="display:none">تسجيل الدخول</a>
+</div>
+
+<!-- ============ الصفحة الفعلية ============ -->
+<div id="pageContent" style="display:none">
+
+  <header class="sec-header">
+    <div class="sec-header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+            <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+          </svg>
+        </span>
+        <span class="logo-text">الظلال</span>
+      </a>
+      <div class="sec-header-actions">
+        <span class="student-name-chip" id="studentNameChip">—</span>
+        <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="sec-page">
+    <div class="section-head">
+      <p class="section-eyebrow">صفحتك التعليمية</p>
+      <h1>كورسات الصف الأول الثانوي</h1>
+      <p>اختار الكورس اللي عايز تشترك فيه وابدأ رحلتك</p>
+    </div>
+
+    <p class="loading-msg" id="loadingMsg">جاري تحميل الكورسات...</p>
+    <p class="empty-msg" id="emptyMsg" style="display:none">لسه مفيش كورسات متاحة للصف ده حاليًا</p>
+
+    <div class="sec-courses-grid" id="coursesGrid"></div>
+  </main>
+
+</div>
+
+<script src="firebase-config.js"></script>
+<script>
+// =========================================================
+// إعداد الصفحة: كل صفحة sec لازم تغيّر السطرين دول بس
+// =========================================================
+const PAGE_GRADE = "1";                 // رقم الصف بتاع الصفحة دي
+const PAGE_URL_BY_GRADE = { "1": "sec1.html", "2": "sec2.html", "3": "sec3.html" };
+
+const accessGuard = document.getElementById('accessGuard');
+const pageContent = document.getElementById('pageContent');
+const guardTitle = document.getElementById('guardTitle');
+const guardText = document.getElementById('guardText');
+const guardBtn = document.getElementById('guardBtn');
+
+function showGuard(title, text, showLoginBtn){
+  pageContent.style.display = 'none';
+  accessGuard.style.display = 'block';
+  guardTitle.textContent = title;
+  guardText.textContent = text;
+  guardBtn.style.display = showLoginBtn ? 'inline-block' : 'none';
+}
+
+let currentStudent = null;
+let currentStudentId = null;
+
+auth.onAuthStateChanged(async (user) => {
+  if(!user){
+    showGuard('لازم تسجل دخول الأول', 'الصفحة دي متاحة للطلاب المسجلين والمقبولين فقط.', true);
+    return;
+  }
+
+  // التأكد إن اليوزر ده طالب (مش أدمن دخل بالغلط)
+  if(!user.email || !user.email.endsWith('@elzilal-student.app')){
+    showGuard('الوصول غير مسموح', 'الصفحة دي مخصصة لحسابات الطلاب فقط.', false);
+    return;
+  }
+
+  const phone = user.email.replace('@elzilal-student.app', '');
+
+  try{
+    const snap = await db.collection('students').doc(phone).get();
+    if(!snap.exists){
+      showGuard('حسابك غير موجود', 'حصل خطأ في بيانات حسابك، تواصل مع الإدارة.', false);
+      return;
+    }
+
+    const student = snap.data();
+
+    if(student.status !== 'approved'){
+      showGuard('حسابك لسه قيد المراجعة', 'هيتفعّل بعد ما القسم يوافق عليه، حاول تاني بعدين.', false);
+      return;
+    }
+
+    // لو الطالب مش في الصف بتاع الصفحة دي، حوّله لصفحته الصح
+    if(student.grade !== PAGE_GRADE){
+      const correctUrl = PAGE_URL_BY_GRADE[student.grade];
+      if(correctUrl){
+        window.location.href = correctUrl;
+      }else{
+        showGuard('حصل خطأ', 'صفك الدراسي غير محدد بشكل صحيح، تواصل مع الإدارة.', false);
+      }
+      return;
+    }
+
+    // كل حاجة تمام، نعرض الصفحة
+    currentStudent = student;
+    currentStudentId = phone;
+    document.getElementById('studentNameChip').textContent = student.studentName || 'الطالب';
+    accessGuard.style.display = 'none';
+    pageContent.style.display = 'block';
+    loadCourses();
+
+  }catch(err){
+    console.error(err);
+    showGuard('حصل خطأ', 'مقدرناش نتحقق من حسابك، حاول تاني.', false);
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  auth.signOut().then(() => window.location.href = 'login.html');
+});
+
+// =========================================================
+// تحميل الكورسات + حالة اشتراك الطالب في كل كورس
+// =========================================================
+async function loadCourses(){
+  const loadingMsg = document.getElementById('loadingMsg');
+  const emptyMsg = document.getElementById('emptyMsg');
+  const grid = document.getElementById('coursesGrid');
+
+  loadingMsg.style.display = 'block';
+  emptyMsg.style.display = 'none';
+  grid.innerHTML = '';
+
+  try{
+    // جلب كورسات الصف ده فقط (بدون orderBy عشان نتجنب الحاجة لـ index مركّب)
+    const coursesSnap = await db.collection('courses')
+      .where('grade', '==', PAGE_GRADE)
+      .where('active', '==', true)
+      .get();
+
+    const courses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // جلب كل طلبات الطالب ده (عشان نعرف حالته في كل كورس)
+    const ordersSnap = await db.collection('orders')
+      .where('uid', '==', auth.currentUser.uid)
+      .get();
+
+    const ordersByCourseId = {};
+    ordersSnap.docs.forEach(doc => {
+      const o = doc.data();
+      // لو فيه أكتر من طلب لنفس الكورس، ناخد آخر واحد مش ملغي
+      if(o.status !== 'cancelled'){
+        ordersByCourseId[o.courseId] = { id: doc.id, ...o };
+      }
+    });
+
+    loadingMsg.style.display = 'none';
+
+    if(courses.length === 0){
+      emptyMsg.style.display = 'block';
+      return;
+    }
+
+    grid.innerHTML = courses.map(c => renderCourseCard(c, ordersByCourseId[c.id])).join('');
+
+    // ربط أزرار الإلغاء
+    grid.querySelectorAll('.sec-cancel-btn').forEach(btn => {
+      btn.addEventListener('click', () => cancelOrder(btn.dataset.orderId));
+    });
+
+  }catch(err){
+    console.error(err);
+    loadingMsg.textContent = 'حصل خطأ في تحميل الكورسات: ' + err.message;
+  }
+}
+
+function renderCourseCard(course, order){
+  let statusHtml = '';
+
+  if(order && order.status === 'approved'){
+    statusHtml = `<div class="sec-course-status"><span class="status-pill open">✓ الكورس مفتوح ليك</span></div>`;
+  }else if(order && order.status === 'pending'){
+    statusHtml = `
+      <div class="sec-course-status">
+        <span class="status-pill pending">⏳ طلبك قيد المراجعة</span>
+        <button class="sec-cancel-btn" data-order-id="${order.id}">إلغاء الطلب</button>
+      </div>`;
+  }else if(order && order.status === 'rejected'){
+    statusHtml = `
+      <div class="sec-course-status">
+        <span class="status-pill rejected">تم رفض الطلب السابق</span>
+        <a href="enroll.html?course=${encodeURIComponent(course.id)}" class="sec-enroll-btn">إعادة الاشتراك</a>
+      </div>`;
+  }else{
+    statusHtml = `
+      <div class="sec-course-status">
+        <a href="enroll.html?course=${encodeURIComponent(course.id)}" class="sec-enroll-btn">اشترك الآن</a>
+      </div>`;
+  }
+
+  return `
+    <div class="sec-course-card">
+      <h3>${escapeHtml(course.title || '')}</h3>
+      <div class="sec-course-price">
+        <span class="amount">${escapeHtml(String(course.price ?? ''))}</span>
+        <span class="currency">${escapeHtml(course.currency || 'جنيه')}</span>
+      </div>
+      ${statusHtml}
+    </div>
+  `;
+}
+
+async function cancelOrder(orderId){
+  if(!confirm('متأكد إنك عايز تلغي طلب الاشتراك ده؟')) return;
+  try{
+    await db.collection('orders').doc(orderId).update({ status: 'cancelled' });
+    loadCourses();
+  }catch(err){
+    console.error(err);
+    alert('حصل خطأ أثناء إلغاء الطلب: ' + err.message);
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>

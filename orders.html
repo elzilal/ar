@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>طلبات الاشتراك | الظلال</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="orders.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<!-- ============ شاشة الدخول بالباسورد ============ -->
+<div class="admin-gate" id="adminGate">
+  <div class="admin-gate-card">
+    <span class="logo-icon" aria-hidden="true">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+        <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+        <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+      </svg>
+    </span>
+    <h1>طلبات الاشتراك</h1>
+    <p>الصفحة دي خاصة بالإدارة فقط</p>
+    <form id="gateForm">
+      <input type="email" id="adminEmailInput" placeholder="البريد الإلكتروني" required autocomplete="off">
+      <input type="password" id="adminPasswordInput" placeholder="اكتب كلمة مرور الإدارة" required autocomplete="off">
+      <button type="submit" class="btn btn-solid">دخول</button>
+    </form>
+    <p class="gate-error" id="gateError">البريد أو كلمة المرور غير صحيحة</p>
+  </div>
+</div>
+
+<!-- ============ اللوحة نفسها ============ -->
+<div class="admin-panel" id="adminPanel">
+
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <a href="admin.html" class="logo">
+        <span class="logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+            <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+          </svg>
+        </span>
+        <span class="logo-text">طلبات الاشتراك</span>
+      </a>
+      <div style="display:flex; gap:10px;">
+        <a href="admin.html" class="btn btn-ghost">لوحة الطلاب</a>
+        <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-num" id="statPending">0</span>
+        <span class="stat-label">قيد المراجعة</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="statApproved">0</span>
+        <span class="stat-label">مفعّلة</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="statRejected">0</span>
+        <span class="stat-label">مرفوضة</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="statTotal">0</span>
+        <span class="stat-label">إجمالي الطلبات</span>
+      </div>
+    </div>
+
+    <div class="filters-row">
+      <button class="filter-btn active" data-filter="pending">قيد المراجعة</button>
+      <button class="filter-btn" data-filter="approved">مفعّلة</button>
+      <button class="filter-btn" data-filter="rejected">مرفوضة</button>
+      <button class="filter-btn" data-filter="cancelled">ملغاة</button>
+      <button class="filter-btn" data-filter="all">الكل</button>
+      <button class="refresh-btn btn btn-ghost" id="refreshBtn">↻ تحديث</button>
+    </div>
+
+    <p class="loading-msg" id="loadingMsg">جاري تحميل الطلبات...</p>
+    <p class="empty-msg" id="emptyMsg" style="display:none">لا توجد طلبات في هذا التصنيف</p>
+
+    <div class="students-list" id="ordersList"></div>
+
+  </main>
+</div>
+
+<!-- ============ نافذة تأكيد الرفض ============ -->
+<div class="confirm-modal" id="rejectModal">
+  <div class="confirm-modal-card">
+    <h3>تأكيد رفض الطلب</h3>
+    <p>هل أنت متأكد من رفض طلب الاشتراك ده؟ الطالب هيقدر يبعت طلب جديد بعد كده.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="cancelRejectBtn">تراجع</button>
+      <button class="btn btn-solid confirm-danger" id="confirmRejectBtn">تأكيد الرفض</button>
+    </div>
+  </div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script>
+// =========================================================
+// تسجيل دخول الأدمن — تحقق حقيقي إن الإيميل مش حساب طالب
+// =========================================================
+const adminGate = document.getElementById('adminGate');
+const adminPanel = document.getElementById('adminPanel');
+const gateForm = document.getElementById('gateForm');
+const gateError = document.getElementById('gateError');
+
+function unlockAdmin(){
+  adminGate.style.display = 'none';
+  adminPanel.style.display = 'block';
+  loadOrders();
+}
+
+function lockAdmin(){
+  adminPanel.style.display = 'none';
+  adminGate.style.display = 'flex';
+}
+
+auth.onAuthStateChanged((user) => {
+  // تحقق إضافي مهم: نمنع أي حساب طالب (@elzilal-student.app) من دخول لوحة الأدمن
+  if(user && user.email && !user.email.endsWith('@elzilal-student.app')){
+    unlockAdmin();
+  }else{
+    if(user) auth.signOut(); // لو حساب طالب حاول يدخل هنا، نطلعه فورًا
+    lockAdmin();
+  }
+});
+
+gateForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('adminEmailInput').value;
+  const password = document.getElementById('adminPasswordInput').value;
+  const submitBtn = gateForm.querySelector('button[type="submit"]');
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'جاري الدخول...';
+  gateError.classList.remove('show');
+
+  try{
+    await auth.signInWithEmailAndPassword(email, password);
+  }catch(err){
+    console.error(err);
+    gateError.textContent = 'البريد أو كلمة المرور غير صحيحة';
+    gateError.classList.add('show');
+  }finally{
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'دخول';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  auth.signOut();
+});
+
+// =========================================================
+// تحميل وعرض طلبات الاشتراك
+// =========================================================
+let allOrders = [];
+let currentFilter = 'pending';
+
+async function loadOrders(){
+  const loadingMsg = document.getElementById('loadingMsg');
+  const emptyMsg = document.getElementById('emptyMsg');
+  loadingMsg.style.display = 'block';
+  emptyMsg.style.display = 'none';
+  document.getElementById('ordersList').innerHTML = '';
+
+  try{
+    // بدون orderBy لتفادي الحاجة لـ composite index؛ هنرتب في الواجهة بدلاً من ذلك
+    const snap = await db.collection('orders').get();
+    allOrders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // ترتيب تنازلي حسب تاريخ الإنشاء
+    allOrders.sort((a, b) => {
+      const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return tb - ta;
+    });
+
+    updateStats();
+    renderOrders();
+
+  }catch(err){
+    console.error(err);
+    loadingMsg.textContent = 'حصل خطأ في تحميل الطلبات: ' + err.message;
+  }
+}
+
+function updateStats(){
+  document.getElementById('statPending').textContent = allOrders.filter(o => o.status === 'pending').length;
+  document.getElementById('statApproved').textContent = allOrders.filter(o => o.status === 'approved').length;
+  document.getElementById('statRejected').textContent = allOrders.filter(o => o.status === 'rejected').length;
+  document.getElementById('statTotal').textContent = allOrders.length;
+}
+
+function renderOrders(){
+  const loadingMsg = document.getElementById('loadingMsg');
+  const emptyMsg = document.getElementById('emptyMsg');
+  const list = document.getElementById('ordersList');
+  loadingMsg.style.display = 'none';
+
+  const filtered = currentFilter === 'all'
+    ? allOrders
+    : allOrders.filter(o => o.status === currentFilter);
+
+  if(filtered.length === 0){
+    emptyMsg.style.display = 'block';
+    list.innerHTML = '';
+    return;
+  }
+  emptyMsg.style.display = 'none';
+
+  const statusLabels = {
+    pending: 'قيد المراجعة',
+    approved: 'مفعّل',
+    rejected: 'مرفوض',
+    cancelled: 'ملغى من الطالب'
+  };
+
+  list.innerHTML = filtered.map(o => `
+    <div class="student-card" data-order-id="${o.id}">
+      <div class="student-card-head">
+        <h3>${escapeHtml(o.studentName || '')}</h3>
+        <span class="status-badge status-${o.status}">${statusLabels[o.status] || o.status}</span>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <span class="order-course-tag">${escapeHtml(o.courseTitle || '')}</span>
+        <span class="order-price-tag">${escapeHtml(String(o.coursePrice ?? ''))} جنيه</span>
+      </div>
+
+      <div class="student-info-grid">
+        <div>
+          <span class="info-label">رقم هاتف الطالب</span>
+          <span class="info-value">${escapeHtml(o.studentPhone || '')}</span>
+        </div>
+        <div>
+          <span class="info-label">الصف</span>
+          <span class="info-value">${gradeLabel(o.grade)}</span>
+        </div>
+        <div>
+          <span class="info-label">اسم المحوّل</span>
+          <span class="info-value">${escapeHtml(o.transferName || '')}</span>
+        </div>
+        <div>
+          <span class="info-label">رقم التحويل</span>
+          <span class="info-value">${escapeHtml(o.transferNumber || '')}</span>
+        </div>
+      </div>
+
+      ${o.status === 'pending' ? `
+        <div class="student-actions">
+          <button class="btn btn-solid approve-btn" data-action="approve" data-id="${o.id}">✓ تفعيل الكورس</button>
+          <button class="btn btn-ghost reject-btn" data-action="reject" data-id="${o.id}">رفض الطلب</button>
+        </div>
+      ` : ''}
+      ${o.status === 'approved' || o.status === 'rejected' ? `
+        <div class="student-actions">
+          <button class="btn btn-ghost" data-action="reset" data-id="${o.id}">إرجاع لقيد المراجعة</button>
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+
+  list.querySelectorAll('[data-action="approve"]').forEach(btn => {
+    btn.addEventListener('click', () => setOrderStatus(btn.dataset.id, 'approved'));
+  });
+  list.querySelectorAll('[data-action="reject"]').forEach(btn => {
+    btn.addEventListener('click', () => openRejectModal(btn.dataset.id));
+  });
+  list.querySelectorAll('[data-action="reset"]').forEach(btn => {
+    btn.addEventListener('click', () => setOrderStatus(btn.dataset.id, 'pending'));
+  });
+}
+
+function gradeLabel(g){
+  const labels = { '1': 'أولى ثانوي', '2': 'تانية ثانوي', '3': 'تالتة ثانوي' };
+  return labels[g] || g || '—';
+}
+
+async function setOrderStatus(orderId, status){
+  try{
+    await db.collection('orders').doc(orderId).update({ status });
+    loadOrders();
+  }catch(err){
+    console.error(err);
+    alert('حصل خطأ: ' + err.message);
+  }
+}
+
+// ============ نافذة تأكيد الرفض ============
+const rejectModal = document.getElementById('rejectModal');
+let pendingRejectId = null;
+
+function openRejectModal(orderId){
+  pendingRejectId = orderId;
+  rejectModal.classList.add('active');
+}
+document.getElementById('cancelRejectBtn').addEventListener('click', () => {
+  rejectModal.classList.remove('active');
+  pendingRejectId = null;
+});
+document.getElementById('confirmRejectBtn').addEventListener('click', async () => {
+  if(pendingRejectId){
+    await setOrderStatus(pendingRejectId, 'rejected');
+  }
+  rejectModal.classList.remove('active');
+  pendingRejectId = null;
+});
+
+// ============ الفلاتر والتحديث ============
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderOrders();
+  });
+});
+document.getElementById('refreshBtn').addEventListener('click', loadOrders);
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>

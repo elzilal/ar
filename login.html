@@ -90,7 +90,10 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
     localStorage.setItem('alzilal-current-student', data.studentPhone);
     alert('تم تسجيل الدخول بنجاح! أهلاً بيك يا ' + student.studentName + ' 👋');
-    window.location.href = 'index.html';
+
+    // تحويل الطالب مباشرة لصفحة صفه الدراسي
+    const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
+    window.location.href = gradeToPage[student.grade] || 'index.html';
   }catch(err){
     console.error(err);
     let msg = 'رقم الطالب أو كلمة المرور غير صحيحة.';

@@ -52,7 +52,10 @@
         </span>
         <span class="logo-text">لوحة التحكم</span>
       </a>
-      <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
+      <div style="display:flex; gap:10px;">
+        <a href="orders.html" class="btn btn-ghost">طلبات الاشتراك</a>
+        <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
+      </div>
     </div>
   </header>
 
@@ -138,9 +141,11 @@ function lockAdmin(){
 // Firebase بيتابع حالة الدخول تلقائيًا، فلو المستخدم مسجل دخول بالفعل
 // (حتى بعد ريفرش للصفحة) هيدخل على طول من غير ما يكتب الباسورد تاني
 auth.onAuthStateChanged((user) => {
-  if(user){
+  // تحقق مهم: نمنع أي حساب طالب (@elzilal-student.app) من دخول لوحة الأدمن
+  if(user && user.email && !user.email.endsWith('@elzilal-student.app')){
     unlockAdmin();
   }else{
+    if(user) auth.signOut(); // لو حساب طالب حاول يدخل هنا، نطلعه فورًا
     lockAdmin();
   }
 });
