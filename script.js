@@ -74,7 +74,7 @@
   if(yearEl) yearEl.textContent = new Date().getFullYear();
 })();
 
-/* ---------------- تحميل بيانات الصفحة الرئيسية من data.json ---------------- */
+/* ---------------- تحميل بيانات الصفحة الرئيسية من data.json + الكورسات من Firestore ---------------- */
 (function loadHomeData(){
   const coursesGrid = document.getElementById('coursesGrid');
   const teacherBio = document.getElementById('teacherBio');
@@ -86,26 +86,72 @@
   fetch('data.json')
     .then(res => res.json())
     .then(data => {
-      renderCourses(data.courses);
       renderTeacher(data.teacher);
       renderWhyUs(data.whyUs);
       renderSocial(data.social);
     })
     .catch(err => console.error('حصل خطأ في تحميل بيانات الصفحة:', err));
 
+  // الكورسات بتتحمل من Firestore (مش data.json) عشان تتضاف/تتعدل من لوحة الإدارة courses.html
+  const gradeLabels = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
+
+  function loadCoursesFromFirestore(){
+    if(!coursesGrid) return;
+    if(typeof db === 'undefined'){
+      coursesGrid.innerHTML = '<p class="loading-msg">تعذر تحميل الكورسات حاليًا</p>';
+      return;
+    }
+    db.collection('courses')
+      .where('location', '==', 'index')
+      .where('active', '==', true)
+      .get()
+      .then(snap => {
+        const courses = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderCourses(courses);
+      })
+      .catch(err => {
+        console.error('حصل خطأ في تحميل الكورسات:', err);
+        coursesGrid.innerHTML = '<p class="loading-msg">تعذر تحميل الكورسات حاليًا</p>';
+      });
+  }
+  loadCoursesFromFirestore();
+
   function renderCourses(courses){
     if(!coursesGrid || !Array.isArray(courses)) return;
+    if(courses.length === 0){
+      coursesGrid.innerHTML = '<p class="empty-msg">لا توجد كورسات متاحة حاليًا</p>';
+      return;
+    }
     coursesGrid.innerHTML = courses.map(c => `
       <div class="course-card">
-        <span class="course-grade">${escapeHtml(c.gradeLabel || '')}</span>
+        ${c.image ? `<img src="${escapeHtml(c.image)}" alt="${escapeHtml(c.title || '')}" class="course-card-img" onerror="this.style.display='none'">` : ''}
+        <span class="course-grade">${escapeHtml(gradeLabels[c.grade] || '')}</span>
         <h3>${escapeHtml(c.title || '')}</h3>
         <div class="course-price">
-          <span class="amount">${escapeHtml(String(c.price))}</span>
+          <span class="amount">${escapeHtml(String(c.price ?? ''))}</span>
           <span class="currency">${escapeHtml(c.currency || 'جنيه')}</span>
         </div>
-        <a href="signup.html" class="course-btn">اشترك الآن</a>
+        <a href="signup.html" class="course-btn" data-course-id="${escapeHtml(c.id)}">اشترك الآن</a>
       </div>
     `).join('');
+
+    // لو الزائر عنده حساب طالب مسجل دخول ومقبول بالفعل،
+    // نوديه على طول لصفحة تأكيد الاشتراك بتاعة نفس الكورس بدل صفحة إنشاء حساب
+    if(typeof auth !== 'undefined' && typeof db !== 'undefined'){
+      auth.onAuthStateChanged(async (user) => {
+        if(!user || !user.email || !user.email.endsWith('@elzilal-student.app')) return;
+        try{
+          const phone = user.email.replace('@elzilal-student.app', '');
+          const snap = await db.collection('students').doc(phone).get();
+          if(snap.exists && snap.data().status === 'approved'){
+            coursesGrid.querySelectorAll('.course-btn').forEach(btn => {
+              btn.href = 'enroll.html?course=' + encodeURIComponent(btn.dataset.courseId);
+              btn.textContent = 'اشترك الآن';
+            });
+          }
+        }catch(e){ console.error(e); }
+      });
+    }
   }
 
   function renderTeacher(teacher){

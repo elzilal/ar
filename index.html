@@ -5,12 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>الظلال | مستر عبد المنعم حلمي</title>
 <meta name="description" content="منصة الظلال لتعليم اللغة العربية - مستر عبد المنعم حلمي، مدرس لغة عربية أول وموجه بخبرة 15 سنة">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
+<!-- ============ سبلاش شاشة البداية ============ -->
+<div class="splash-screen" id="splashScreen">
+  <div class="splash-inner">
+    <span class="logo-icon splash-logo-icon" aria-hidden="true">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+        <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+        <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+      </svg>
+    </span>
+    <span class="splash-text">الظلال</span>
+    <span class="splash-spinner" aria-hidden="true"></span>
+  </div>
+</div>
 
 <!-- ============ خلفية زخرفية ============ -->
 <div class="bg-pattern" aria-hidden="true"></div>
@@ -195,6 +215,76 @@
   </div>
 </footer>
 
+<script src="firebase-config.js"></script>
 <script src="script.js"></script>
+<script>
+// =========================================================
+// منطق سبلاش الصفحة الرئيسية:
+// - يظهر لحد ما نتحقق من حالة الطالب (أقصى مدة انتظار 3 ثواني)
+// - لو الطالب عنده حساب مسجل دخول: نحوله فورًا لصفحته من غير ما يشوف محتوى index
+// - لو مفيش حساب: يختفي السبلاش ويشوف index عادي
+// =========================================================
+(function initSplash(){
+  const splash = document.getElementById('splashScreen');
+  if(!splash) return;
+
+  const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
+  let decided = false;
+
+  function hideSplash(){
+    if(decided) return;
+    decided = true;
+    splash.classList.add('splash-hide');
+    setTimeout(() => splash.remove(), 500);
+  }
+
+  function redirectTo(url){
+    if(decided) return;
+    decided = true;
+    window.location.replace(url);
+  }
+
+  // أقصى مدة انتظار: 3 ثواني، بعدها يظهر المحتوى العادي حتى لو التحقق لسه شغال
+  const maxWaitTimer = setTimeout(hideSplash, 3000);
+
+  if(typeof auth === 'undefined' || typeof db === 'undefined'){
+    // فايربيز مش شغال لأي سبب، منعرضش المستخدم لانتظار بلا فايدة
+    hideSplash();
+    return;
+  }
+
+  auth.onAuthStateChanged(async (user) => {
+    if(decided) return;
+
+    if(!user || !user.email || !user.email.endsWith('@elzilal-student.app')){
+      // مفيش حساب طالب مسجل دخول
+      clearTimeout(maxWaitTimer);
+      hideSplash();
+      return;
+    }
+
+    // فيه حساب طالب، نتأكد إنه مقبول ونعرف صفه عشان نحوله
+    try{
+      const phone = user.email.replace('@elzilal-student.app', '');
+      const snap = await db.collection('students').doc(phone).get();
+      clearTimeout(maxWaitTimer);
+
+      if(snap.exists && snap.data().status === 'approved'){
+        const target = gradeToPage[snap.data().grade];
+        if(target){
+          redirectTo(target);
+          return;
+        }
+      }
+      // مش مقبول أو مفيش بياناته: نسيبه يشوف الصفحة الرئيسية عادي
+      hideSplash();
+    }catch(err){
+      console.error(err);
+      clearTimeout(maxWaitTimer);
+      hideSplash();
+    }
+  });
+})();
+</script>
 </body>
 </html>

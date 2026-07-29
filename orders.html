@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>طلبات الاشتراك | الظلال</title>
 <meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
@@ -53,7 +56,25 @@
         </span>
         <span class="logo-text">طلبات الاشتراك</span>
       </a>
-      <div style="display:flex; gap:10px;">
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="تبديل الوضع الليلي والنهاري" aria-pressed="false">
+          <span class="theme-toggle-track">
+            <span class="theme-toggle-thumb">
+              <svg class="icon-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M12 1.5V4"/><path d="M12 20v2.5"/>
+                  <path d="M4.2 4.2L6 6"/><path d="M18 18l1.8 1.8"/>
+                  <path d="M1.5 12H4"/><path d="M20 12h2.5"/>
+                  <path d="M4.2 19.8L6 18"/><path d="M18 6l1.8-1.8"/>
+                </g>
+              </svg>
+            </span>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" fill="currentColor"/>
+            </svg>
+          </span>
+        </button>
         <a href="admin.html" class="btn btn-ghost">لوحة الطلاب</a>
         <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
       </div>
@@ -111,6 +132,7 @@
 </div>
 
 <script src="firebase-config.js"></script>
+<script src="script.js"></script>
 <script>
 // =========================================================
 // تسجيل دخول الأدمن — تحقق حقيقي إن الإيميل مش حساب طالب
@@ -131,9 +153,11 @@ function lockAdmin(){
   adminGate.style.display = 'flex';
 }
 
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(async (user) => {
   // تحقق إضافي مهم: نمنع أي حساب طالب (@elzilal-student.app) من دخول لوحة الأدمن
   if(user && user.email && !user.email.endsWith('@elzilal-student.app')){
+    // نجبر تحديث الـ ID token عشان نضمن إن الـ email claim موجود فعليًا
+    try{ await user.getIdToken(true); }catch(e){ console.error(e); }
     unlockAdmin();
   }else{
     if(user) auth.signOut(); // لو حساب طالب حاول يدخل هنا، نطلعه فورًا
@@ -293,11 +317,17 @@ function gradeLabel(g){
   return labels[g] || g || '—';
 }
 
-async function setOrderStatus(orderId, status){
+async function setOrderStatus(orderId, status, isRetry){
   try{
     await db.collection('orders').doc(orderId).update({ status });
     loadOrders();
   }catch(err){
+    if(!isRetry && err.code === 'permission-denied' && auth.currentUser){
+      try{
+        await auth.currentUser.getIdToken(true);
+        return setOrderStatus(orderId, status, true);
+      }catch(e){ /* تجاهل */ }
+    }
     console.error(err);
     alert('حصل خطأ: ' + err.message);
   }

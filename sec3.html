@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>كورسات تالتة ثانوي | الظلال</title>
 <meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
@@ -40,6 +43,24 @@
         <span class="logo-text">الظلال</span>
       </a>
       <div class="sec-header-actions">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="تبديل الوضع الليلي والنهاري" aria-pressed="false">
+          <span class="theme-toggle-track">
+            <span class="theme-toggle-thumb">
+              <svg class="icon-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M12 1.5V4"/><path d="M12 20v2.5"/>
+                  <path d="M4.2 4.2L6 6"/><path d="M18 18l1.8 1.8"/>
+                  <path d="M1.5 12H4"/><path d="M20 12h2.5"/>
+                  <path d="M4.2 19.8L6 18"/><path d="M18 6l1.8-1.8"/>
+                </g>
+              </svg>
+            </span>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" fill="currentColor"/>
+            </svg>
+          </span>
+        </button>
         <span class="student-name-chip" id="studentNameChip">—</span>
         <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
       </div>
@@ -62,6 +83,7 @@
 </div>
 
 <script src="firebase-config.js"></script>
+<script src="script.js"></script>
 <script>
 // =========================================================
 // إعداد الصفحة: كل صفحة sec لازم تغيّر السطرين دول بس
@@ -156,9 +178,9 @@ async function loadCourses(){
   grid.innerHTML = '';
 
   try{
-    // جلب كورسات الصف ده فقط (بدون orderBy عشان نتجنب الحاجة لـ index مركّب)
+    // جلب كورسات الصف ده والمخصصة لصفحة sec3 فقط (بدون orderBy عشان نتجنب الحاجة لـ index مركّب)
     const coursesSnap = await db.collection('courses')
-      .where('grade', '==', PAGE_GRADE)
+      .where('location', '==', 'sec3')
       .where('active', '==', true)
       .get();
 
@@ -224,6 +246,7 @@ function renderCourseCard(course, order){
 
   return `
     <div class="sec-course-card">
+      ${course.image ? `<img src="${escapeHtml(course.image)}" alt="" class="sec-course-img" onerror="this.style.display='none'">` : ''}
       <h3>${escapeHtml(course.title || '')}</h3>
       <div class="sec-course-price">
         <span class="amount">${escapeHtml(String(course.price ?? ''))}</span>

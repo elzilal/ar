@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إدارة الكورسات | الظلال</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="courses.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<!-- ============ شاشة الدخول بالباسورد ============ -->
+<div class="admin-gate" id="adminGate">
+  <div class="admin-gate-card">
+    <span class="logo-icon" aria-hidden="true">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+        <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+        <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+      </svg>
+    </span>
+    <h1>إدارة الكورسات</h1>
+    <p>الصفحة دي خاصة بالإدارة فقط</p>
+    <form id="gateForm">
+      <input type="email" id="adminEmailInput" placeholder="البريد الإلكتروني" required autocomplete="off">
+      <input type="password" id="adminPasswordInput" placeholder="اكتب كلمة مرور الإدارة" required autocomplete="off">
+      <button type="submit" class="btn btn-solid">دخول</button>
+    </form>
+    <p class="gate-error" id="gateError">البريد أو كلمة المرور غير صحيحة</p>
+  </div>
+</div>
+
+<!-- ============ اللوحة نفسها ============ -->
+<div class="admin-panel" id="adminPanel">
+
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <a href="admin.html" class="logo">
+        <span class="logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+            <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+          </svg>
+        </span>
+        <span class="logo-text">إدارة الكورسات</span>
+      </a>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="تبديل الوضع الليلي والنهاري" aria-pressed="false">
+          <span class="theme-toggle-track">
+            <span class="theme-toggle-thumb">
+              <svg class="icon-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M12 1.5V4"/><path d="M12 20v2.5"/>
+                  <path d="M4.2 4.2L6 6"/><path d="M18 18l1.8 1.8"/>
+                  <path d="M1.5 12H4"/><path d="M20 12h2.5"/>
+                  <path d="M4.2 19.8L6 18"/><path d="M18 6l1.8-1.8"/>
+                </g>
+              </svg>
+            </span>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" fill="currentColor"/>
+            </svg>
+          </span>
+        </button>
+        <a href="admin.html" class="btn btn-ghost">لوحة الطلاب</a>
+        <a href="orders.html" class="btn btn-ghost">طلبات الاشتراك</a>
+        <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <div class="courses-toolbar">
+      <button class="btn btn-solid" id="addCourseBtn">+ إضافة كورس جديد</button>
+    </div>
+
+    <!-- ============ فلاتر مكان العرض ============ -->
+    <div class="filters-row">
+      <button class="filter-btn active" data-filter="all">كل الكورسات</button>
+      <button class="filter-btn" data-filter="index">الصفحة الرئيسية</button>
+      <button class="filter-btn" data-filter="sec1">أولى ثانوي</button>
+      <button class="filter-btn" data-filter="sec2">تانية ثانوي</button>
+      <button class="filter-btn" data-filter="sec3">تالتة ثانوي</button>
+      <button class="btn btn-ghost refresh-btn" id="refreshBtn">↻ تحديث</button>
+    </div>
+
+    <p class="loading-msg" id="loadingMsg">جاري تحميل الكورسات...</p>
+    <p class="empty-msg" id="emptyMsg" style="display:none">مفيش كورسات في القسم ده حاليًا</p>
+
+    <div class="students-list" id="coursesList"></div>
+
+  </main>
+</div>
+
+<!-- ============ نافذة إضافة / تعديل كورس ============ -->
+<div class="course-modal" id="courseModal">
+  <div class="course-modal-card">
+    <h3 id="courseModalTitle">إضافة كورس جديد</h3>
+    <form class="course-form" id="courseForm">
+      <input type="hidden" id="courseId" value="">
+
+      <label>
+        <span>اسم الكورس</span>
+        <input type="text" id="courseTitle" placeholder="مثال: كورس الشهر الأول - أولى ثانوي" required>
+      </label>
+
+      <div class="course-form-row">
+        <label>
+          <span>السعر</span>
+          <input type="number" id="coursePrice" placeholder="90" min="0" required>
+        </label>
+        <label>
+          <span>العملة</span>
+          <input type="text" id="courseCurrency" placeholder="جنيه" value="جنيه" required>
+        </label>
+      </div>
+
+      <label>
+        <span>مكان عرض الكورس</span>
+        <select id="courseLocation" required>
+          <option value="index">الصفحة الرئيسية (index)</option>
+          <option value="sec1">صفحة أولى ثانوي (sec1)</option>
+          <option value="sec2">صفحة تانية ثانوي (sec2)</option>
+          <option value="sec3">صفحة تالتة ثانوي (sec3)</option>
+        </select>
+      </label>
+
+      <label id="courseGradeWrap">
+        <span>الصف الدراسي المرتبط بالكورس</span>
+        <select id="courseGrade">
+          <option value="1">الصف الأول الثانوي</option>
+          <option value="2">الصف الثاني الثانوي</option>
+          <option value="3">الصف الثالث الثانوي</option>
+        </select>
+      </label>
+
+      <label>
+        <span>رابط صورة الكورس</span>
+        <input type="url" id="courseImage" placeholder="https://example.com/image.jpg">
+      </label>
+
+      <label class="course-active-toggle">
+        <input type="checkbox" id="courseActive" checked>
+        <span>الكورس مفعّل وظاهر للطلاب</span>
+      </label>
+
+      <div class="course-form-actions">
+        <button type="button" class="btn btn-ghost" id="cancelCourseBtn">إلغاء</button>
+        <button type="submit" class="btn btn-solid" id="saveCourseBtn">حفظ الكورس</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ نافذة تأكيد الحذف ============ -->
+<div class="confirm-modal" id="deleteModal">
+  <div class="confirm-modal-card">
+    <h3>متأكد إنك عايز تحذف الكورس ده؟</h3>
+    <p>الإجراء ده نهائي ومش هينفع نرجع فيه</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="cancelDeleteBtn">إلغاء</button>
+      <button class="btn btn-solid confirm-danger" id="confirmDeleteBtn">تأكيد الحذف</button>
+    </div>
+  </div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script src="script.js"></script>
+<script>
+// =========================================================
+// تسجيل دخول الأدمن
+// =========================================================
+const adminGate = document.getElementById('adminGate');
+const adminPanel = document.getElementById('adminPanel');
+const gateForm = document.getElementById('gateForm');
+const gateError = document.getElementById('gateError');
+
+function unlockAdmin(){
+  adminGate.style.display = 'none';
+  adminPanel.style.display = 'block';
+  loadCourses();
+}
+function lockAdmin(){
+  adminPanel.style.display = 'none';
+  adminGate.style.display = 'flex';
+}
+
+auth.onAuthStateChanged(async (user) => {
+  if(user && user.email && !user.email.endsWith('@elzilal-student.app')){
+    try{ await user.getIdToken(true); }catch(e){ console.error(e); }
+    unlockAdmin();
+  }else{
+    if(user) auth.signOut();
+    lockAdmin();
+  }
+});
+
+gateForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('adminEmailInput').value;
+  const password = document.getElementById('adminPasswordInput').value;
+  const submitBtn = gateForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'جاري الدخول...';
+  gateError.classList.remove('show');
+  try{
+    await auth.signInWithEmailAndPassword(email, password);
+  }catch(err){
+    console.error(err);
+    gateError.textContent = 'البريد أو كلمة المرور غير صحيحة';
+    gateError.classList.add('show');
+  }finally{
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'دخول';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+
+// =========================================================
+// تحميل وعرض الكورسات
+// =========================================================
+let allCourses = [];
+let currentFilter = 'all';
+
+const locationNames = {
+  index: 'الصفحة الرئيسية',
+  sec1: 'أولى ثانوي',
+  sec2: 'تانية ثانوي',
+  sec3: 'تالتة ثانوي'
+};
+
+async function loadCourses(){
+  document.getElementById('loadingMsg').style.display = 'block';
+  document.getElementById('emptyMsg').style.display = 'none';
+  document.getElementById('coursesList').innerHTML = '';
+
+  try{
+    const snap = await db.collection('courses').get();
+    allCourses = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // ترتيب: الأحدث أولاً
+    allCourses.sort((a, b) => {
+      const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return tb - ta;
+    });
+    renderCourses();
+  }catch(err){
+    console.error(err);
+    document.getElementById('loadingMsg').textContent = 'حصل خطأ في تحميل الكورسات: ' + err.message;
+  }
+}
+
+function renderCourses(){
+  document.getElementById('loadingMsg').style.display = 'none';
+  const list = document.getElementById('coursesList');
+  const emptyMsg = document.getElementById('emptyMsg');
+
+  const filtered = currentFilter === 'all'
+    ? allCourses
+    : allCourses.filter(c => c.location === currentFilter);
+
+  if(filtered.length === 0){
+    list.innerHTML = '';
+    emptyMsg.style.display = 'block';
+    return;
+  }
+  emptyMsg.style.display = 'none';
+
+  list.innerHTML = filtered.map(c => `
+    <div class="course-admin-card" data-id="${c.id}">
+      <img class="course-admin-thumb" src="${escapeHtml(c.image || '')}" alt="" onerror="this.style.visibility='hidden'">
+      <div class="course-admin-info">
+        <h3>${escapeHtml(c.title || '')}</h3>
+        <div class="course-admin-meta">
+          <span class="course-admin-tag">${locationNames[c.location] || c.location}</span>
+          <span class="course-admin-price">${escapeHtml(String(c.price ?? ''))} ${escapeHtml(c.currency || 'جنيه')}</span>
+          ${c.active === false ? '<span class="course-admin-tag tag-inactive">غير مفعّل</span>' : ''}
+        </div>
+      </div>
+      <div class="course-admin-actions">
+        <button class="btn btn-ghost icon-btn edit-course-btn" data-id="${c.id}" title="تعديل" aria-label="تعديل">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="btn btn-ghost icon-btn delete-course-btn" data-id="${c.id}" title="حذف" aria-label="حذف">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.edit-course-btn').forEach(btn => {
+    btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+  });
+  list.querySelectorAll('.delete-course-btn').forEach(btn => {
+    btn.addEventListener('click', () => openDeleteModal(btn.dataset.id));
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderCourses();
+  });
+});
+document.getElementById('refreshBtn').addEventListener('click', loadCourses);
+
+// =========================================================
+// نافذة إضافة / تعديل كورس
+// =========================================================
+const courseModal = document.getElementById('courseModal');
+const courseForm = document.getElementById('courseForm');
+const courseModalTitle = document.getElementById('courseModalTitle');
+const courseLocationSelect = document.getElementById('courseLocation');
+const courseGradeWrap = document.getElementById('courseGradeWrap');
+
+// ربط مكان العرض بالصف الدراسي تلقائيًا (sec1 = صف 1، ...) وإخفاء الحقل لو "index"
+const locationToGrade = { sec1: '1', sec2: '2', sec3: '3' };
+function syncGradeVisibility(){
+  const loc = courseLocationSelect.value;
+  if(loc === 'index'){
+    courseGradeWrap.style.display = 'block'; // لسه ممكن يتحدد لأي صف لعرضه في index
+  }else{
+    courseGradeWrap.style.display = 'block';
+    document.getElementById('courseGrade').value = locationToGrade[loc] || '1';
+  }
+}
+courseLocationSelect.addEventListener('change', syncGradeVisibility);
+
+function openAddModal(){
+  courseForm.reset();
+  document.getElementById('courseId').value = '';
+  document.getElementById('courseCurrency').value = 'جنيه';
+  document.getElementById('courseActive').checked = true;
+  courseModalTitle.textContent = 'إضافة كورس جديد';
+  syncGradeVisibility();
+  courseModal.classList.add('active');
+}
+
+function openEditModal(id){
+  const course = allCourses.find(c => c.id === id);
+  if(!course) return;
+  document.getElementById('courseId').value = id;
+  document.getElementById('courseTitle').value = course.title || '';
+  document.getElementById('coursePrice').value = course.price ?? '';
+  document.getElementById('courseCurrency').value = course.currency || 'جنيه';
+  document.getElementById('courseLocation').value = course.location || 'index';
+  document.getElementById('courseGrade').value = course.grade || '1';
+  document.getElementById('courseImage').value = course.image || '';
+  document.getElementById('courseActive').checked = course.active !== false;
+  courseModalTitle.textContent = 'تعديل الكورس';
+  syncGradeVisibility();
+  courseModal.classList.add('active');
+}
+
+document.getElementById('addCourseBtn').addEventListener('click', openAddModal);
+document.getElementById('cancelCourseBtn').addEventListener('click', () => courseModal.classList.remove('active'));
+courseModal.addEventListener('click', (e) => { if(e.target === courseModal) courseModal.classList.remove('active'); });
+
+courseForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const saveBtn = document.getElementById('saveCourseBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'جاري الحفظ...';
+
+  const id = document.getElementById('courseId').value;
+  const payload = {
+    title: document.getElementById('courseTitle').value.trim(),
+    price: Number(document.getElementById('coursePrice').value),
+    currency: document.getElementById('courseCurrency').value.trim() || 'جنيه',
+    location: document.getElementById('courseLocation').value,
+    grade: document.getElementById('courseGrade').value,
+    image: document.getElementById('courseImage').value.trim(),
+    active: document.getElementById('courseActive').checked
+  };
+
+  try{
+    if(id){
+      await db.collection('courses').doc(id).update(payload);
+    }else{
+      payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('courses').add(payload);
+    }
+    courseModal.classList.remove('active');
+    await loadCourses();
+  }catch(err){
+    console.error(err);
+    alert('حصل خطأ أثناء حفظ الكورس: ' + err.message);
+  }finally{
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'حفظ الكورس';
+  }
+});
+
+// =========================================================
+// حذف كورس
+// =========================================================
+const deleteModal = document.getElementById('deleteModal');
+let pendingDeleteId = null;
+
+function openDeleteModal(id){
+  pendingDeleteId = id;
+  deleteModal.classList.add('active');
+}
+document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+  deleteModal.classList.remove('active');
+  pendingDeleteId = null;
+});
+deleteModal.addEventListener('click', (e) => { if(e.target === deleteModal) deleteModal.classList.remove('active'); });
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+  if(!pendingDeleteId) return;
+  try{
+    await db.collection('courses').doc(pendingDeleteId).delete();
+    await loadCourses();
+  }catch(err){
+    console.error(err);
+    alert('حصل خطأ أثناء حذف الكورس: ' + err.message);
+  }finally{
+    deleteModal.classList.remove('active');
+    pendingDeleteId = null;
+  }
+});
+</script>
+</body>
+</html>

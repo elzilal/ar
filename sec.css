@@ -1,0 +1,200 @@
+/* =========================================================
+   صفحة كورسات الطالب (sec1 / sec2 / sec3)
+   ========================================================= */
+
+.sec-header{
+  background: color-mix(in srgb, var(--cream) 85%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  padding: 16px 6vw;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.sec-header-inner{
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sec-header .logo{ display: flex; align-items: center; gap: 10px; }
+.sec-header .logo-icon{ width: 38px; height: 38px; }
+.sec-header .logo-text{
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--maroon);
+}
+[data-theme="dark"] .sec-header .logo-text{ color: var(--gold); }
+
+.sec-header-actions{ display:flex; align-items:center; gap:10px; }
+.student-name-chip{
+  font-weight: 700;
+  color: var(--maroon);
+  background: rgba(238,219,123,0.35);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: .9rem;
+}
+[data-theme="dark"] .student-name-chip{ color: var(--gold); background: rgba(238,219,123,0.12); }
+
+.sec-page{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 50px 6vw 90px;
+}
+
+.sec-page .section-head{ text-align: center; margin-bottom: 40px; }
+.sec-page .section-eyebrow{ color: var(--olive); font-weight: 700; margin: 0 0 8px; }
+.sec-page h1{
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  color: var(--maroon);
+  margin: 0 0 10px;
+}
+[data-theme="dark"] .sec-page h1{ color: var(--gold); }
+.sec-page .section-head > p{ color: var(--ink-soft); margin: 0; }
+
+.loading-msg, .empty-msg{
+  color: var(--ink-soft);
+  padding: 40px 20px;
+  text-align: center;
+}
+
+/* ============ شبكة كروت الكورسات ============ */
+.sec-courses-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.sec-course-card{
+  background: var(--cream-2);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  border-radius: var(--radius-lg);
+  padding: 30px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.sec-course-card::before{
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, rgba(238,219,123,0.3), transparent 70%);
+  pointer-events: none;
+}
+
+.sec-course-img{
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: 4px;
+}
+
+.sec-course-card h3{
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--maroon);
+  margin: 0;
+}
+[data-theme="dark"] .sec-course-card h3{ color: var(--gold); }
+
+.sec-course-price{
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.sec-course-price .amount{
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--coral);
+}
+.sec-course-price .currency{ color: var(--ink-soft); font-size: .9rem; }
+
+.sec-course-status{
+  margin-top: auto;
+}
+
+.status-pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .88rem;
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+.status-pill.open{
+  background: linear-gradient(135deg, #6EAE5C, #4E8B3E);
+  color: #fff;
+}
+.status-pill.pending{
+  background: rgba(238,219,123,0.35);
+  color: var(--maroon);
+}
+[data-theme="dark"] .status-pill.pending{ color: var(--gold); background: rgba(238,219,123,0.15); }
+.status-pill.rejected{
+  background: rgba(240,75,55,0.15);
+  color: var(--coral-dark);
+}
+
+.sec-enroll-btn{
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 13px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--coral), var(--coral-dark));
+  color: #fff;
+  font-weight: 700;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.sec-enroll-btn:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -10px rgba(240,75,55,0.5);
+}
+
+.sec-cancel-btn{
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--coral) 50%, transparent);
+  color: var(--coral-dark);
+  font-weight: 700;
+  font-size: .85rem;
+  margin-top: 8px;
+  transition: background .2s ease;
+}
+.sec-cancel-btn:hover{ background: rgba(240,75,55,0.08); }
+
+/* ============ نافذة الوصول المرفوض ============ */
+.access-guard{
+  max-width: 480px;
+  margin: 90px auto;
+  text-align: center;
+  padding: 40px 30px;
+  background: var(--cream-2);
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+}
+.access-guard h1{
+  font-family: var(--font-display);
+  color: var(--maroon);
+  margin: 0 0 12px;
+}
+[data-theme="dark"] .access-guard h1{ color: var(--gold); }
+.access-guard p{ color: var(--ink-soft); margin: 0 0 24px; }

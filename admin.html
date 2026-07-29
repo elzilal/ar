@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>لوحة التحكم | الظلال</title>
 <meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
@@ -52,7 +55,26 @@
         </span>
         <span class="logo-text">لوحة التحكم</span>
       </a>
-      <div style="display:flex; gap:10px;">
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="تبديل الوضع الليلي والنهاري" aria-pressed="false">
+          <span class="theme-toggle-track">
+            <span class="theme-toggle-thumb">
+              <svg class="icon-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M12 1.5V4"/><path d="M12 20v2.5"/>
+                  <path d="M4.2 4.2L6 6"/><path d="M18 18l1.8 1.8"/>
+                  <path d="M1.5 12H4"/><path d="M20 12h2.5"/>
+                  <path d="M4.2 19.8L6 18"/><path d="M18 6l1.8-1.8"/>
+                </g>
+              </svg>
+            </span>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" fill="currentColor"/>
+            </svg>
+          </span>
+        </button>
+        <a href="courses.html" class="btn btn-ghost">إدارة الكورسات</a>
         <a href="orders.html" class="btn btn-ghost">طلبات الاشتراك</a>
         <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
       </div>
@@ -118,6 +140,7 @@
 </div>
 
 <script src="firebase-config.js"></script>
+<script src="script.js"></script>
 <script>
 // =========================================================
 // تسجيل دخول حقيقي عبر Firebase Authentication
@@ -140,9 +163,12 @@ function lockAdmin(){
 
 // Firebase بيتابع حالة الدخول تلقائيًا، فلو المستخدم مسجل دخول بالفعل
 // (حتى بعد ريفرش للصفحة) هيدخل على طول من غير ما يكتب الباسورد تاني
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(async (user) => {
   // تحقق مهم: نمنع أي حساب طالب (@elzilal-student.app) من دخول لوحة الأدمن
   if(user && user.email && !user.email.endsWith('@elzilal-student.app')){
+    // نجبر تحديث الـ ID token عشان نضمن إن الـ email claim موجود فعليًا
+    // قبل أي عملية update على Firestore (بيحل مشكلة "Missing or insufficient permissions")
+    try{ await user.getIdToken(true); }catch(e){ console.error(e); }
     unlockAdmin();
   }else{
     if(user) auth.signOut(); // لو حساب طالب حاول يدخل هنا، نطلعه فورًا
@@ -268,7 +294,7 @@ function escapeHtml(str){
   return div.innerHTML;
 }
 
-async function updateStudentStatus(id, newStatus){
+async function updateStudentStatus(id, newStatus, isRetry){
   try{
     await db.collection('students').doc(id).update({ status: newStatus });
 
@@ -277,6 +303,14 @@ async function updateStudentStatus(id, newStatus){
     updateStats();
     renderStudents();
   }catch(err){
+    // لو الخطأ صلاحيات وأول مرة، جدد التوكن وحاول مرة واحدة تانية
+    // (بيحصل أحيانًا لو الـ email claim اتأخر شوية في التحديث)
+    if(!isRetry && err.code === 'permission-denied' && auth.currentUser){
+      try{
+        await auth.currentUser.getIdToken(true);
+        return updateStudentStatus(id, newStatus, true);
+      }catch(e){ /* تجاهل، هنطلع الخطأ الأصلي تحت */ }
+    }
     console.error(err);
     alert('حصل خطأ أثناء تحديث حالة الطالب: ' + err.message);
   }

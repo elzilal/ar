@@ -374,6 +374,13 @@ ul{ margin:0; padding:0; list-style:none; }
   transform: translateY(-8px);
   box-shadow: 0 26px 40px -18px rgba(122,46,23,0.35);
 }
+.course-card-img{
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: 18px;
+}
 .course-grade{
   display: inline-block;
   font-size: .85rem;
@@ -631,4 +638,73 @@ ul{ margin:0; padding:0; list-style:none; }
     from{ opacity:0; transform: translateY(18px); }
     to{ opacity:1; transform: translateY(0); }
   }
+}
+
+/* =========================================================
+   سبلاش شاشة البداية (index.html فقط)
+   ========================================================= */
+.splash-screen{
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .5s ease;
+}
+.splash-screen.splash-hide{
+  opacity: 0;
+  pointer-events: none;
+}
+.splash-inner{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.splash-logo-icon{
+  width: 84px;
+  height: 84px;
+  animation: splashPulse 1.6s ease-in-out infinite;
+}
+.splash-text{
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--maroon);
+}
+[data-theme="dark"] .splash-text{ color: var(--gold); }
+.splash-spinner{
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid color-mix(in srgb, var(--olive) 35%, transparent);
+  border-top-color: var(--coral);
+  animation: splashSpin .8s linear infinite;
+}
+@keyframes splashPulse{
+  0%, 100%{ transform: scale(1); }
+  50%{ transform: scale(1.08); }
+}
+@keyframes splashSpin{
+  to{ transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce){
+  .splash-logo-icon{ animation: none; }
+  .splash-spinner{ animation: splashSpin 1.2s linear infinite; }
+}
+
+/* =========================================================
+   زرار الثيم العائم — للصفحات اللي مفيهاش هيدر ثابت
+   (enroll / login / signup)
+   ========================================================= */
+.theme-toggle-floating{
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 1000;
+}
+@media (max-width: 480px){
+  .theme-toggle-floating{ top: 12px; left: 12px; }
 }

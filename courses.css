@@ -1,0 +1,164 @@
+/* =========================================================
+   صفحة إدارة الكورسات (courses.html)
+   تستخدم نفس أنماط admin.css الأساسية + إضافات هنا
+   ========================================================= */
+
+.courses-toolbar{
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.course-admin-card{
+  background: var(--cream-2);
+  border: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.course-admin-thumb{
+  width: 74px;
+  height: 74px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--cream);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  flex-shrink: 0;
+}
+
+.course-admin-info{ flex: 1; min-width: 0; }
+.course-admin-info h3{
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+.course-admin-meta{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.course-admin-tag{
+  font-size: .78rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(180,187,121,0.25);
+  color: var(--maroon);
+}
+[data-theme="dark"] .course-admin-tag{ color: var(--gold); background: rgba(180,187,121,0.15); }
+.course-admin-price{
+  font-weight: 800;
+  color: var(--coral);
+}
+.course-admin-tag.tag-inactive{
+  background: rgba(240,75,55,0.15);
+  color: var(--coral-dark);
+}
+
+.course-admin-actions{
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.course-admin-actions .btn{
+  padding: 9px 16px;
+  font-size: .85rem;
+}
+.icon-btn{
+  width: 38px;
+  height: 38px;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+.icon-btn svg{ width: 18px; height: 18px; }
+
+/* ============ نافذة إضافة/تعديل كورس ============ */
+.course-modal{
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(20,15,10,0.6);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.course-modal.active{ display: flex; }
+.course-modal-card{
+  background: var(--cream-2);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: var(--shadow-soft);
+  margin: auto;
+}
+.course-modal-card h3{
+  margin: 0 0 20px;
+  color: var(--maroon);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  text-align: center;
+}
+[data-theme="dark"] .course-modal-card h3{ color: var(--gold); }
+
+.course-form label{
+  display: block;
+  margin-bottom: 16px;
+}
+.course-form label span{
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: .88rem;
+  color: var(--ink);
+}
+.course-form input,
+.course-form select{
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid color-mix(in srgb, var(--olive) 45%, transparent);
+  background: var(--cream);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: .92rem;
+}
+.course-form input:focus,
+.course-form select:focus{
+  outline: none;
+  border-color: var(--coral);
+}
+.course-form-row{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.course-form-actions{
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+.course-form-actions .btn{ flex: 1; }
+
+.course-active-toggle{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+.course-active-toggle input{ width: auto; }
+
+@media (max-width: 560px){
+  .course-admin-card{ flex-wrap: wrap; }
+  .course-admin-actions{ width: 100%; justify-content: flex-end; }
+  .course-form-row{ grid-template-columns: 1fr; }
+}
