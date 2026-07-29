@@ -132,28 +132,10 @@
             <span class="amount">${escapeHtml(String(c.price ?? ''))}</span>
             <span class="currency">${escapeHtml(c.currency || 'جنيه')}</span>
           </div>
-          <a href="signup.html" class="course-btn" data-course-id="${escapeHtml(c.id)}">اشترك الآن</a>
+          <a href="enroll.html?course=${encodeURIComponent(c.id)}" class="course-btn" data-course-id="${escapeHtml(c.id)}">اشترك الآن</a>
         </div>
       </div>
     `).join('');
-
-    // لو الزائر عنده حساب طالب مسجل دخول ومقبول بالفعل،
-    // نوديه على طول لصفحة تأكيد الاشتراك بتاعة نفس الكورس بدل صفحة إنشاء حساب
-    if(typeof auth !== 'undefined' && typeof db !== 'undefined'){
-      auth.onAuthStateChanged(async (user) => {
-        if(!user || !user.email || !user.email.endsWith('@elzilal-student.app')) return;
-        try{
-          const phone = user.email.replace('@elzilal-student.app', '');
-          const snap = await db.collection('students').doc(phone).get();
-          if(snap.exists && snap.data().status === 'approved'){
-            coursesGrid.querySelectorAll('.course-btn').forEach(btn => {
-              btn.href = 'enroll.html?course=' + encodeURIComponent(btn.dataset.courseId);
-              btn.textContent = 'اشترك الآن';
-            });
-          }
-        }catch(e){ console.error(e); }
-      });
-    }
   }
 
   function renderTeacher(teacher){
