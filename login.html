@@ -114,9 +114,10 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     }
 
     localStorage.setItem('alzilal-current-student', data.studentPhone);
-    alert('تم تسجيل الدخول بنجاح! أهلاً بيك يا ' + student.studentName + ' 👋');
+    submitBtn.textContent = 'تم الدخول، جاري التحويل...';
 
-    // تحويل الطالب مباشرة لصفحة صفه الدراسي
+    // تحويل الطالب مباشرة لصفحة صفه الدراسي (من غير alert بيوقف التنفيذ
+    // ويأخر التحويل، عشان الانتقال يبقى سريع وسلس)
     const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
     window.location.href = gradeToPage[student.grade] || 'index.html';
   }catch(err){
