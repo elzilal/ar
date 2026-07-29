@@ -275,8 +275,7 @@ document.getElementById('signupForm').addEventListener('submit', async function(
     // إنشاء حساب حقيقي في Firebase Authentication (كلمة السر بتتشفّر تلقائيًا)
     const cred = await auth.createUserWithEmailAndPassword(fakeEmail, data.password);
 
-    // تخزين باقي بيانات الطالب في Firestore بدون كلمة السر إطلاقًا
-    await studentRef.set({
+    const studentPayload = {
       uid: cred.user.uid,
       studentName: data.studentName,
       studentPhone: data.studentPhone,
@@ -287,7 +286,21 @@ document.getElementById('signupForm').addEventListener('submit', async function(
       village: data.village,
       status: 'pending', // pending | approved | rejected
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    };
+
+    // نحاول نكتب بيانات الطالب في Firestore. لو حصلت مشكلة صلاحيات
+    // (سببها الغالب إن التوكن الجديد لسه ما "استقرش" على سيرفرات Firestore)
+    // نجبر تحديث التوكن ونعيد المحاولة مرة واحدة قبل ما نستسلم.
+    try{
+      await studentRef.set(studentPayload);
+    }catch(writeErr){
+      if(writeErr.code === 'permission-denied'){
+        await cred.user.getIdToken(true);
+        await studentRef.set(studentPayload);
+      }else{
+        throw writeErr;
+      }
+    }
 
     // نسجّل خروج فورًا عشان الطالب ميدخلش قبل ما القسم يوافق عليه
     await auth.signOut();
@@ -301,6 +314,7 @@ document.getElementById('signupForm').addEventListener('submit', async function(
     let msg = err.message;
     if(err.code === 'auth/email-already-in-use') msg = 'يوجد حساب مسجل بهذا الرقم بالفعل، برجاء تسجيل الدخول.';
     if(err.code === 'auth/weak-password') msg = 'كلمة المرور ضعيفة، لازم تكون 6 أحرف على الأقل.';
+    if(err.code === 'permission-denied') msg = 'حصلت مشكلة مؤقتة في الاتصال، حاول تاني بعد لحظات. لو المشكلة استمرت، جرب تسجل دخول لأن الحساب ممكن يكون اتعمل بالفعل.';
     alert('حصل خطأ أثناء إنشاء الحساب: ' + msg);
     submitBtn.disabled = false;
     submitBtn.textContent = 'إنشاء الحساب';
