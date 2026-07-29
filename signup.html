@@ -288,18 +288,28 @@ document.getElementById('signupForm').addEventListener('submit', async function(
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    // نحاول نكتب بيانات الطالب في Firestore. لو حصلت مشكلة صلاحيات
-    // (سببها الغالب إن التوكن الجديد لسه ما "استقرش" على سيرفرات Firestore)
-    // نجبر تحديث التوكن ونعيد المحاولة مرة واحدة قبل ما نستسلم.
-    try{
-      await studentRef.set(studentPayload);
-    }catch(writeErr){
-      if(writeErr.code === 'permission-denied'){
-        await cred.user.getIdToken(true);
+    // نحاول نكتب بيانات الطالب في Firestore. أول توكن بيتعمله المستخدم لسه ما
+    // "يستقرش" أحيانًا على سيرفرات Firestore، فبنجبر تحديثه ونجرب أكتر من مرة
+    // بفاصل زمني حقيقي (مش فوري) قبل ما نستسلم فعلاً.
+    let lastWriteErr = null;
+    let written = false;
+    for(let attempt = 1; attempt <= 4 && !written; attempt++){
+      try{
+        if(attempt > 1){
+          await new Promise(r => setTimeout(r, attempt * 700)); // 700ms, 1400ms, 2100ms
+          await cred.user.getIdToken(true);
+        }
         await studentRef.set(studentPayload);
-      }else{
-        throw writeErr;
+        written = true;
+      }catch(writeErr){
+        lastWriteErr = writeErr;
+        if(writeErr.code !== 'permission-denied'){
+          throw writeErr; // خطأ من نوع تاني، منضيعش وقت في إعادة المحاولة
+        }
       }
+    }
+    if(!written){
+      throw lastWriteErr;
     }
 
     // نسجّل خروج فورًا عشان الطالب ميدخلش قبل ما القسم يوافق عليه
@@ -314,7 +324,7 @@ document.getElementById('signupForm').addEventListener('submit', async function(
     let msg = err.message;
     if(err.code === 'auth/email-already-in-use') msg = 'يوجد حساب مسجل بهذا الرقم بالفعل، برجاء تسجيل الدخول.';
     if(err.code === 'auth/weak-password') msg = 'كلمة المرور ضعيفة، لازم تكون 6 أحرف على الأقل.';
-    if(err.code === 'permission-denied') msg = 'حصلت مشكلة مؤقتة في الاتصال، حاول تاني بعد لحظات. لو المشكلة استمرت، جرب تسجل دخول لأن الحساب ممكن يكون اتعمل بالفعل.';
+    if(err.code === 'permission-denied') msg = 'حصلت مشكلة صلاحيات مستمرة. كود الخطأ: ' + (err.code || 'غير معروف') + ' — ' + err.message;
     alert('حصل خطأ أثناء إنشاء الحساب: ' + msg);
     submitBtn.disabled = false;
     submitBtn.textContent = 'إنشاء الحساب';
