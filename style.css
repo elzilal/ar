@@ -263,7 +263,7 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 .hero-teacher-img{
   width: 100%;
-  max-width: 480px;
+  max-width: 648px;
   height: auto;
   position: relative;
   z-index: 2;
@@ -335,6 +335,7 @@ ul{ margin:0; padding:0; list-style:none; }
   padding: 90px 6vw;
   max-width: 1320px;
   margin: 0 auto;
+  border-top: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
 }
 .section-head{ text-align: center; margin-bottom: 46px; }
 .section-head h2{
@@ -423,16 +424,13 @@ ul{ margin:0; padding:0; list-style:none; }
   padding: 90px 6vw;
   max-width: 1320px;
   margin: 0 auto;
+  border-top: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
 }
 .about-inner{
-  display: grid;
-  grid-template-columns: 1fr 0.85fr;
-  gap: 60px;
-  align-items: center;
-  background: var(--cream-2);
-  border-radius: var(--radius-lg);
-  padding: 50px;
-  border: 1px solid color-mix(in srgb, var(--olive) 35%, transparent);
+  max-width: 760px;
+  margin-inline-start: auto;
+  margin-inline-end: 0;
+  text-align: right;
 }
 .section-eyebrow{
   color: var(--olive);
@@ -440,13 +438,13 @@ ul{ margin:0; padding:0; list-style:none; }
   letter-spacing: .5px;
   margin: 0 0 8px;
 }
-.about-content h2{
+.about-inner h2{
   font-family: var(--font-display);
   font-size: clamp(1.9rem, 3.5vw, 2.6rem);
   margin: 0 0 8px;
   color: var(--maroon);
 }
-[data-theme="dark"] .about-content h2{ color: var(--gold); }
+[data-theme="dark"] .about-inner h2{ color: var(--gold); }
 .teacher-role{
   color: var(--ink-soft);
   font-weight: 600;
@@ -468,54 +466,55 @@ ul{ margin:0; padding:0; list-style:none; }
   font-size: .95rem;
 }
 
-.about-image-wrap{
-  display: flex;
-  justify-content: center;
-}
-.about-teacher-img{
-  width: 100%;
-  max-width: 340px;
-  border-radius: var(--radius-lg);
-}
-
 /* =========================================================
-   السوشيال ميديا
+   قسم ليه تختارنا
    ========================================================= */
-.social-section{
-  text-align: center;
-  padding: 80px 6vw 100px;
-  max-width: 900px;
+.why-us{
+  padding: 90px 6vw;
+  max-width: 1320px;
   margin: 0 auto;
+  border-top: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
 }
-.social-section h2{
-  font-family: var(--font-display);
-  font-size: clamp(1.9rem, 3.5vw, 2.6rem);
-  color: var(--maroon);
-  margin: 0 0 10px;
-}
-[data-theme="dark"] .social-section h2{ color: var(--gold); }
-.social-section > p{ color: var(--ink-soft); margin: 0 0 34px; }
-
-.social-links{
-  display: flex;
-  justify-content: center;
-  gap: 22px;
-}
-.social-btn{
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
+.why-us-grid{
   display: grid;
-  place-items: center;
-  color: #fff;
-  box-shadow: var(--shadow-card);
-  transition: transform .25s ease, box-shadow .25s ease;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 26px;
 }
-.social-btn svg{ width: 26px; height: 26px; }
-.social-btn:hover{ transform: translateY(-6px) scale(1.05); }
-.social-btn.whatsapp{ background: #25D366; }
-.social-btn.tiktok{ background: var(--ink); }
-.social-btn.facebook{ background: #1877F2; }
+.why-card{
+  background: var(--cream-2);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  border-radius: var(--radius-lg);
+  padding: 32px 26px;
+  text-align: center;
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+.why-card:hover{
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-card);
+}
+.why-icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--coral), var(--coral-dark));
+  color: #fff;
+  margin-bottom: 18px;
+}
+.why-icon svg{ width: 28px; height: 28px; }
+.why-card h3{
+  font-size: 1.2rem;
+  margin: 0 0 10px;
+  color: var(--maroon);
+}
+[data-theme="dark"] .why-card h3{ color: var(--gold); }
+.why-card p{
+  color: var(--ink-soft);
+  font-size: .98rem;
+  margin: 0;
+}
 
 /* =========================================================
    الفوتر
@@ -523,17 +522,28 @@ ul{ margin:0; padding:0; list-style:none; }
 .site-footer{
   background: var(--maroon);
   color: var(--gold-soft);
-  padding: 40px 6vw;
+  padding: 50px 6vw 40px;
 }
 .footer-inner{
   max-width: 1320px;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  text-align: center;
 }
+.footer-top{
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 40px;
+  align-items: center;
+}
+.footer-col{ display: flex; flex-direction: column; }
+.footer-col-dev{ align-items: flex-start; text-align: right; }
+.footer-col-social{ align-items: flex-end; text-align: left; }
+
+.footer-divider{
+  width: 1px;
+  align-self: stretch;
+  background: color-mix(in srgb, var(--gold) 35%, transparent);
+}
+
 .footer-logo{
   display: flex;
   align-items: center;
@@ -541,6 +551,7 @@ ul{ margin:0; padding:0; list-style:none; }
   font-family: var(--font-display);
   font-size: 1.3rem;
   color: var(--gold);
+  margin-bottom: 10px;
 }
 .footer-logo-svg{ width: 26px; height: 26px; fill: var(--gold); }
 .footer-copy{ font-size: .9rem; color: rgba(246,235,184,0.85); margin: 0; }
@@ -552,6 +563,37 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 .footer-copy a:hover{ color: #fff; }
 
+.footer-col-social h3{
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--gold);
+  margin: 0 0 6px;
+}
+.footer-col-social > p{
+  color: rgba(246,235,184,0.85);
+  font-size: .92rem;
+  margin: 0 0 16px;
+}
+.social-links{
+  display: flex;
+  gap: 16px;
+}
+.social-btn{
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  box-shadow: var(--shadow-card);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.social-btn svg{ width: 22px; height: 22px; }
+.social-btn:hover{ transform: translateY(-6px) scale(1.05); }
+.social-btn.whatsapp{ background: #25D366; }
+.social-btn.tiktok{ background: var(--ink); }
+.social-btn.facebook{ background: #1877F2; }
+
 /* =========================================================
    استجابة للشاشات الصغيرة
    ========================================================= */
@@ -559,8 +601,11 @@ ul{ margin:0; padding:0; list-style:none; }
   .hero-inner{ grid-template-columns: 1fr; text-align: center; }
   .hero-content{ text-align: center; }
   .hero-desc{ margin-inline: auto; }
-  .about-inner{ grid-template-columns: 1fr; padding: 34px 24px; text-align: center; }
-  .about-image-wrap{ order: -1; }
+  .about-inner{ margin-inline: auto; text-align: center; }
+  .footer-top{ grid-template-columns: 1fr; gap: 28px; }
+  .footer-divider{ width: 100%; height: 1px; }
+  .footer-col-dev, .footer-col-social{ align-items: center; text-align: center; }
+  .social-links{ justify-content: center; }
 }
 
 @media (max-width: 720px){
