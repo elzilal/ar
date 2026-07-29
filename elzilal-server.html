@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سيرفر الإدارة | الظلال</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<!-- ============ شاشة الدخول بالباسورد ============ -->
+<div class="admin-gate" id="adminGate">
+  <div class="admin-gate-card">
+    <span class="logo-icon" aria-hidden="true">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+        <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+        <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+      </svg>
+    </span>
+    <h1>سيرفر الإدارة</h1>
+    <p>الصفحة دي خاصة بالإدارة فقط</p>
+    <form id="gateForm">
+      <input type="email" id="adminEmailInput" placeholder="البريد الإلكتروني" required autocomplete="off">
+      <input type="password" id="adminPasswordInput" placeholder="اكتب كلمة مرور الإدارة" required autocomplete="off">
+      <button type="submit" class="btn btn-solid">دخول</button>
+    </form>
+    <p class="gate-error" id="gateError">البريد أو كلمة المرور غير صحيحة</p>
+  </div>
+</div>
+
+<!-- ============ اللوحة نفسها ============ -->
+<div class="admin-panel" id="adminPanel">
+
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <a href="elzilal-server.html" class="logo">
+        <span class="logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+            <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+          </svg>
+        </span>
+        <span class="logo-text">سيرفر الإدارة</span>
+      </a>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="تبديل الوضع الليلي والنهاري" aria-pressed="false">
+          <span class="theme-toggle-track">
+            <span class="theme-toggle-thumb">
+              <svg class="icon-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M12 1.5V4"/><path d="M12 20v2.5"/>
+                  <path d="M4.2 4.2L6 6"/><path d="M18 18l1.8 1.8"/>
+                  <path d="M1.5 12H4"/><path d="M20 12h2.5"/>
+                  <path d="M4.2 19.8L6 18"/><path d="M18 6l1.8-1.8"/>
+                </g>
+              </svg>
+            </span>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" fill="currentColor"/>
+            </svg>
+          </span>
+        </button>
+        <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <div class="server-hub-header">
+      <h1>أهلاً بيك في سيرفر إدارة الظلال</h1>
+      <p>اختار اللوحة اللي عايز تدخلها</p>
+    </div>
+
+    <div class="server-hub-grid">
+
+      <!-- لوحة الطلاب -->
+      <div class="server-hub-card">
+        <span class="server-hub-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 12a5 5 0 100-10 5 5 0 000 10z" stroke="currentColor" stroke-width="2"/>
+            <path d="M3 21c0-4.4 4-8 9-8s9 3.6 9 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <h3>لوحة الطلاب</h3>
+        <p>مراجعة طلبات التسجيل، قبول أو رفض حسابات الطلاب الجدد</p>
+        <a href="admin.html" class="btn btn-solid">فتح لوحة الطلاب</a>
+      </div>
+
+      <!-- صفحة الطلاب العامة -->
+      <div class="server-hub-card">
+        <span class="server-hub-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <h3>صفحة الطلاب</h3>
+        <p>الصفحة العامة اللي بتعرض عدد وأسماء الطلاب المقبولين</p>
+        <a href="students.html" class="btn btn-solid">فتح صفحة الطلاب</a>
+      </div>
+
+      <!-- طلبات الاشتراك -->
+      <div class="server-hub-card">
+        <span class="server-hub-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <h3>طلبات الاشتراك</h3>
+        <p>متابعة طلبات دفع الكورسات عبر فودافون كاش، وتفعيلها</p>
+        <a href="orders.html" class="btn btn-solid">فتح طلبات الاشتراك</a>
+      </div>
+
+      <!-- إدارة الكورسات -->
+      <div class="server-hub-card">
+        <span class="server-hub-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <h3>إدارة الكورسات</h3>
+        <p>إضافة وتعديل وحذف الكورسات المعروضة في كل صفحات الموقع</p>
+        <a href="courses.html" class="btn btn-solid">فتح إدارة الكورسات</a>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<script src="firebase-config.js"></script>
+<script src="script.js"></script>
+<script>
+// =========================================================
+// تسجيل دخول الأدمن — نفس منطق admin.html بالظبط
+// =========================================================
+const adminGate = document.getElementById('adminGate');
+const adminPanel = document.getElementById('adminPanel');
+const gateForm = document.getElementById('gateForm');
+const gateError = document.getElementById('gateError');
+
+function unlockAdmin(){
+  adminGate.style.display = 'none';
+  adminPanel.style.display = 'block';
+}
+function lockAdmin(){
+  adminPanel.style.display = 'none';
+  adminGate.style.display = 'flex';
+}
+
+auth.onAuthStateChanged(async (user) => {
+  // نفس التحقق المستخدم في كل صفحات الإدارة: نمنع أي حساب طالب من دخول السيرفر
+  if(user && user.email && !user.email.endsWith('@elzilal-student.app')){
+    try{ await user.getIdToken(true); }catch(e){ console.error(e); }
+    unlockAdmin();
+  }else{
+    if(user) auth.signOut();
+    lockAdmin();
+  }
+});
+
+gateForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('adminEmailInput').value;
+  const password = document.getElementById('adminPasswordInput').value;
+  const submitBtn = gateForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'جاري الدخول...';
+  gateError.classList.remove('show');
+  try{
+    await auth.signInWithEmailAndPassword(email, password);
+  }catch(err){
+    console.error(err);
+    gateError.textContent = 'البريد أو كلمة المرور غير صحيحة';
+    gateError.classList.add('show');
+  }finally{
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'دخول';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+</script>
+</body>
+</html>

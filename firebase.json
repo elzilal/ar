@@ -12,7 +12,8 @@
       { "source": "/login", "destination": "/login.html" },
       { "source": "/signup", "destination": "/signup.html" },
       { "source": "/admin", "destination": "/admin.html" },
-      { "source": "/students", "destination": "/students.html" }
+      { "source": "/students", "destination": "/students.html" },
+      { "source": "/server", "destination": "/elzilal-server.html" }
     ]
   },
   "firestore": {
