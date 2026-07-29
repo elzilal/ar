@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="auth.css">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
@@ -60,11 +61,14 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   submitBtn.disabled = true;
   submitBtn.textContent = 'جاري الدخول...';
 
+  const fakeEmail = data.studentPhone + '@elzilal-student.app';
+
   try{
+    // أولًا نتحقق من حالة الطالب في Firestore قبل الدخول الفعلي
     const studentRef = db.collection('students').doc(data.studentPhone);
     const snap = await studentRef.get();
 
-    if(!snap.exists || snap.data().password !== data.password){
+    if(!snap.exists){
       alert('رقم الطالب أو كلمة المرور غير صحيحة.');
       submitBtn.disabled = false;
       submitBtn.textContent = 'تسجيل الدخول';
@@ -73,7 +77,11 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
     const student = snap.data();
 
+    // تسجيل الدخول عبر Firebase Authentication (بيتحقق من كلمة السر المشفّرة)
+    await auth.signInWithEmailAndPassword(fakeEmail, data.password);
+
     if(student.status !== 'approved'){
+      await auth.signOut();
       alert('حسابك لسه قيد المراجعة، هيتفعّل بعد ما القسم يوافق عليه.');
       submitBtn.disabled = false;
       submitBtn.textContent = 'تسجيل الدخول';
@@ -85,7 +93,9 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     window.location.href = 'index.html';
   }catch(err){
     console.error(err);
-    alert('حصل خطأ أثناء تسجيل الدخول: ' + err.message);
+    let msg = 'رقم الطالب أو كلمة المرور غير صحيحة.';
+    if(err.code === 'auth/too-many-requests') msg = 'محاولات كتير غلط، حاول تاني بعد شوية.';
+    alert(msg);
     submitBtn.disabled = false;
     submitBtn.textContent = 'تسجيل الدخول';
   }

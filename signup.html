@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="auth.css">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
@@ -230,8 +231,12 @@ document.getElementById('signupForm').addEventListener('submit', async function(
   submitBtn.disabled = true;
   submitBtn.textContent = 'جاري الإرسال...';
 
+  // رقم هاتف الطالب بيتحول لإيميل صوري عشان Firebase Authentication
+  // محتاج إيميل، وده بيضمن كلمة السر تتشفّر بأمان بمعرفة Firebase نفسها
+  const fakeEmail = data.studentPhone + '@elzilal-student.app';
+
   try{
-    // رقم هاتف الطالب هو الـ document ID عشان نمنع تسجيل نفس الرقم مرتين
+    // نتأكد الأول إن رقم الطالب مش مسجل قبل كده في Firestore
     const studentRef = db.collection('students').doc(data.studentPhone);
     const existing = await studentRef.get();
 
@@ -242,7 +247,12 @@ document.getElementById('signupForm').addEventListener('submit', async function(
       return;
     }
 
+    // إنشاء حساب حقيقي في Firebase Authentication (كلمة السر بتتشفّر تلقائيًا)
+    const cred = await auth.createUserWithEmailAndPassword(fakeEmail, data.password);
+
+    // تخزين باقي بيانات الطالب في Firestore بدون كلمة السر إطلاقًا
     await studentRef.set({
+      uid: cred.user.uid,
       studentName: data.studentName,
       studentPhone: data.studentPhone,
       parentPhone: data.parentPhone,
@@ -250,10 +260,12 @@ document.getElementById('signupForm').addEventListener('submit', async function(
       governorate: data.governorate,
       city: data.city,
       village: data.village,
-      password: data.password,
       status: 'pending', // pending | approved | rejected
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+
+    // نسجّل خروج فورًا عشان الطالب ميدخلش قبل ما القسم يوافق عليه
+    await auth.signOut();
 
     // إظهار رسالة النجاح
     document.getElementById('signupForm').style.display = 'none';
@@ -261,7 +273,10 @@ document.getElementById('signupForm').addEventListener('submit', async function(
     document.getElementById('pendingState').classList.add('active');
   }catch(err){
     console.error(err);
-    alert('حصل خطأ أثناء إنشاء الحساب: ' + err.message);
+    let msg = err.message;
+    if(err.code === 'auth/email-already-in-use') msg = 'يوجد حساب مسجل بهذا الرقم بالفعل، برجاء تسجيل الدخول.';
+    if(err.code === 'auth/weak-password') msg = 'كلمة المرور ضعيفة، لازم تكون 6 أحرف على الأقل.';
+    alert('حصل خطأ أثناء إنشاء الحساب: ' + msg);
     submitBtn.disabled = false;
     submitBtn.textContent = 'إنشاء الحساب';
   }
