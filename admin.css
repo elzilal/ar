@@ -1,0 +1,263 @@
+/* =========================================================
+   لوحة تحكم الأدمن
+   ========================================================= */
+
+/* ---------------- شاشة الدخول بالباسورد ---------------- */
+.admin-gate{
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.admin-gate-card{
+  width: 100%;
+  max-width: 380px;
+  background: var(--cream-2);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  border-radius: var(--radius-lg);
+  padding: 40px 32px;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+}
+.admin-gate-card .logo-icon{
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  display: block;
+}
+.admin-gate-card h1{
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--maroon);
+  margin: 0 0 6px;
+}
+[data-theme="dark"] .admin-gate-card h1{ color: var(--gold); }
+.admin-gate-card > p{ color: var(--ink-soft); font-size: .9rem; margin: 0 0 24px; }
+
+#gateForm{ display: flex; flex-direction: column; gap: 14px; }
+#gateForm input{
+  padding: 13px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid color-mix(in srgb, var(--olive) 45%, transparent);
+  background: var(--cream);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: .95rem;
+  text-align: center;
+}
+#gateForm input:focus{ outline: none; border-color: var(--coral); }
+#gateForm button{ padding: 13px; }
+
+.gate-error{
+  color: var(--coral);
+  font-size: .85rem;
+  margin: 14px 0 0;
+  display: none;
+}
+.gate-error.show{ display: block; }
+
+/* ---------------- اللوحة نفسها ---------------- */
+.admin-panel{ display: none; }
+
+.admin-header{
+  background: var(--cream-2);
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  padding: 16px 6vw;
+}
+.admin-header-inner{
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.admin-header .logo{ display: flex; align-items: center; gap: 10px; }
+.admin-header .logo-icon{ width: 38px; height: 38px; }
+.admin-header .logo-text{
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--maroon);
+}
+[data-theme="dark"] .admin-header .logo-text{ color: var(--gold); }
+
+.admin-main{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 6vw 80px;
+}
+
+/* ---------------- بطاقات الإحصائيات ---------------- */
+.stats-row{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.stat-card{
+  background: var(--cream-2);
+  border: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  text-align: center;
+}
+.stat-num{
+  display: block;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--coral);
+}
+.stat-label{ font-size: .82rem; color: var(--ink-soft); }
+
+/* ---------------- الفلاتر ---------------- */
+.filters-row{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+.filter-btn{
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--olive) 45%, transparent);
+  background: transparent;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: .88rem;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.filter-btn:hover{ border-color: var(--coral); color: var(--coral); }
+.filter-btn.active{
+  background: var(--coral);
+  border-color: var(--coral);
+  color: #fff;
+}
+.refresh-btn{
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font-size: .85rem;
+}
+
+/* ---------------- رسائل التحميل / الفراغ ---------------- */
+.loading-msg, .empty-msg{
+  text-align: center;
+  color: var(--ink-soft);
+  padding: 50px 20px;
+  font-size: .95rem;
+}
+
+/* ---------------- قائمة الطلاب ---------------- */
+.students-list{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.student-card{
+  background: var(--cream-2);
+  border: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+.student-card-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.student-card-head h3{
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+
+.status-badge{
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.status-pending{ background: rgba(238,219,123,0.35); color: var(--maroon); }
+.status-approved{ background: rgba(76,175,80,0.2); color: #2e7d32; }
+.status-rejected{ background: rgba(240,75,55,0.15); color: var(--coral-dark); }
+[data-theme="dark"] .status-approved{ color: #81c784; }
+
+.student-info-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px;
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+}
+.student-info-grid > div{ display: flex; flex-direction: column; gap: 3px; }
+.info-label{ font-size: .74rem; color: var(--ink-soft); font-weight: 600; }
+.info-value{ font-size: .92rem; color: var(--ink); font-weight: 600; }
+
+.student-actions{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.student-actions .btn{
+  padding: 9px 20px;
+  font-size: .85rem;
+}
+.approve-btn{ background: linear-gradient(135deg, #4caf50, #388e3c); box-shadow: none; }
+.approve-btn:hover{ transform: translateY(-2px); }
+.reject-btn{ color: var(--coral); border-color: var(--coral); }
+.reject-btn:hover{ background: rgba(240,75,55,0.08); }
+
+/* ---------------- نافذة تأكيد الرفض ---------------- */
+.confirm-modal{
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(20,15,10,0.6);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.confirm-modal.active{ display: flex; }
+.confirm-modal-card{
+  background: var(--cream-2);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+}
+.confirm-modal-card h3{
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+.confirm-modal-card p{
+  color: var(--ink-soft);
+  font-size: .88rem;
+  margin: 0 0 20px;
+}
+.confirm-actions{
+  display: flex;
+  gap: 10px;
+}
+.confirm-actions .btn{ flex: 1; }
+.confirm-danger{
+  background: linear-gradient(135deg, var(--coral), var(--coral-dark));
+}
+
+@media (max-width: 600px){
+  .admin-header-inner .logo-text{ display: none; }
+  .stats-row{ grid-template-columns: repeat(2, 1fr); }
+}

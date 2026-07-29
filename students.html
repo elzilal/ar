@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>طلابنا | الظلال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="students.css">
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<!-- ============ هيدر مبسط ============ -->
+<header class="students-header">
+  <div class="students-header-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+          <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+          <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+        </svg>
+      </span>
+      <span class="logo-text">الظلال</span>
+    </a>
+    <a href="index.html" class="btn btn-ghost">الرئيسية</a>
+  </div>
+</header>
+
+<main class="students-page">
+  <div class="section-head">
+    <p class="section-eyebrow">أسرة الظلال</p>
+    <h1>طلابنا الحاليين</h1>
+    <p>عدد الطلاب المنضمين لينا في رحلة تعلّم اللغة العربية</p>
+  </div>
+
+  <div class="students-count-badge" id="studentsCount">جاري التحميل...</div>
+
+  <p class="loading-msg" id="loadingMsg">جاري تحميل بيانات الطلاب...</p>
+  <p class="empty-msg" id="emptyMsg" style="display:none">لسه مفيش طلاب منضمين، كن أول واحد!</p>
+
+  <div class="students-grid" id="studentsGrid"></div>
+</main>
+
+<!-- ============ الفوتر ============ -->
+<footer class="site-footer">
+  <div class="footer-inner" style="grid-template-columns:1fr; text-align:center;">
+    <p class="footer-copy">
+      جميع الحقوق محفوظة © <span id="year"></span> الظلال —
+      تطوير <a href="https://mo7amed-portfolio.github.io/dev/" target="_blank" rel="noopener">Mohamed Ashraf</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+const gradeNames = { '1': 'أولى ثانوي', '2': 'تانية ثانوي', '3': 'تالتة ثانوي' };
+
+function loadApprovedStudents(){
+  try{
+    // ملاحظة: نعرض فقط الاسم والصف الدراسي (بدون أي بيانات حساسة كرقم الهاتف)
+    const students = JSON.parse(localStorage.getItem('alzilal-students') || '{}');
+    const data = Object.values(students)
+      .filter(s => s.status === 'approved')
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+    document.getElementById('loadingMsg').style.display = 'none';
+    const grid = document.getElementById('studentsGrid');
+    const countBadge = document.getElementById('studentsCount');
+
+    if(!data || data.length === 0){
+      document.getElementById('emptyMsg').style.display = 'block';
+      countBadge.textContent = '0 طالب منضم حاليًا';
+      return;
+    }
+
+    countBadge.textContent = `${data.length} طالب منضم حاليًا`;
+
+    grid.innerHTML = data.map(s => `
+      <div class="student-mini-card">
+        <div class="student-avatar">${(s.studentName || '?').trim().charAt(0)}</div>
+        <h3>${escapeHtml(s.studentName || 'طالب')}</h3>
+        <span class="student-grade-tag">${gradeNames[s.grade] || ''}</span>
+      </div>
+    `).join('');
+
+  }catch(err){
+    console.error(err);
+    document.getElementById('loadingMsg').textContent = 'حصل خطأ في تحميل البيانات.';
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+loadApprovedStudents();
+</script>
+</body>
+</html>

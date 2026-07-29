@@ -1,0 +1,420 @@
+/* =========================================================
+   صفحات المصادقة (login / signup)
+   ========================================================= */
+
+.auth-page{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 6vw;
+  gap: 28px;
+}
+
+.auth-logo{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.auth-logo .logo-icon{
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+}
+.auth-logo .logo-svg{ width: 100%; height: 100%; }
+.auth-logo .logo-text{
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--maroon);
+}
+[data-theme="dark"] .auth-logo .logo-text{ color: var(--gold); }
+
+/* ---------------- الكارت ---------------- */
+.auth-card{
+  width: 100%;
+  max-width: 440px;
+  background: var(--cream-2);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  border-radius: var(--radius-lg);
+  padding: 44px 38px;
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+}
+.auth-card-wide{ max-width: 500px; }
+
+.auth-card h1{
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  color: var(--maroon);
+  margin: 0 0 8px;
+}
+[data-theme="dark"] .auth-card h1{ color: var(--gold); }
+
+.auth-sub{
+  color: var(--ink-soft);
+  margin: 0 0 26px;
+  font-size: .95rem;
+}
+
+/* ---------------- الفورم العام ---------------- */
+.auth-form{
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.auth-form label{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+  font-size: .9rem;
+  color: var(--ink);
+}
+
+.auth-form input,
+.auth-form select{
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid color-mix(in srgb, var(--olive) 45%, transparent);
+  background: var(--cream);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: .95rem;
+  width: 100%;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.auth-form input:focus,
+.auth-form select:focus{
+  outline: none;
+  border-color: var(--coral);
+  box-shadow: 0 0 0 3px rgba(240,75,55,0.15);
+}
+
+.auth-submit{
+  width: 100%;
+  padding: 14px;
+  font-size: 1rem;
+}
+
+.auth-switch{
+  margin: 20px 0 0;
+  color: var(--ink-soft);
+  font-size: .9rem;
+  text-align: center;
+}
+.auth-switch a{
+  color: var(--coral);
+  font-weight: 700;
+}
+.auth-switch a:hover{ text-decoration: underline; }
+
+/* =========================================================
+   شريط الخطوات (Steps)
+   ========================================================= */
+.steps-bar{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.step-dot{
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--cream);
+  border: 2px solid color-mix(in srgb, var(--olive) 50%, transparent);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: .85rem;
+  color: var(--ink-soft);
+  transition: all .25s ease;
+  flex-shrink: 0;
+}
+.step-dot.active{
+  background: var(--coral);
+  border-color: var(--coral);
+  color: #fff;
+  box-shadow: 0 6px 14px -4px rgba(240,75,55,0.5);
+}
+.step-dot.done{
+  background: var(--olive);
+  border-color: var(--olive);
+  color: #fff;
+}
+.step-line{
+  width: 32px;
+  height: 2px;
+  background: color-mix(in srgb, var(--olive) 40%, transparent);
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   خطوات الفورم — fieldset بديل عن div
+   ========================================================= */
+fieldset.form-step{
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.form-step{
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+.form-step.active{
+  display: flex;
+  animation: fadeStep .3s ease;
+}
+@keyframes fadeStep{
+  from{ opacity: 0; transform: translateY(8px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+
+.form-step h1{ font-size: 1.5rem; margin: 0 0 2px; }
+.form-step .auth-sub{ margin: 0 0 4px; }
+
+.field-row{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.step-actions{
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+.step-actions .btn{ flex: 1; }
+
+/* =========================================================
+   رفع / تصوير صورة البطاقة
+   ========================================================= */
+.upload-field-label span{
+  display: block;
+  font-weight: 600;
+  font-size: .9rem;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.upload-field-label .upload-hint{
+  font-weight: 500;
+  font-size: .8rem;
+  color: var(--ink-soft);
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+.upload-options{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.upload-btn{
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 10px;
+  border: 1.5px dashed color-mix(in srgb, var(--olive) 55%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--cream);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: .82rem;
+  font-weight: 600;
+  transition: border-color .2s ease, color .2s ease;
+  text-align: center;
+}
+.upload-btn:hover{
+  border-color: var(--coral);
+  color: var(--coral);
+}
+.upload-btn svg{
+  width: 24px !important;
+  height: 24px !important;
+  max-width: 24px;
+  max-height: 24px;
+  flex-shrink: 0;
+}
+.upload-btn input[type="file"]{
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload-preview-box{
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  background: var(--cream);
+  border: 1px solid color-mix(in srgb, var(--olive) 35%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  justify-content: center;
+}
+#uploadFileName{
+  font-size: .82rem;
+  color: var(--ink-soft);
+  word-break: break-all;
+  text-align: center;
+}
+.upload-preview-box.has-image #uploadFileName{ color: var(--olive); font-weight: 600; }
+
+/* ---------------- شريط تحميل الصورة ---------------- */
+.upload-progress-wrap{
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  gap: 6px;
+}
+.upload-preview-box.is-uploading .upload-progress-wrap{ display: flex; }
+.upload-progress-track{
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--olive) 20%, transparent);
+  overflow: hidden;
+}
+.upload-progress-bar{
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--coral), var(--gold));
+  transition: width .12s ease;
+}
+.upload-progress-text{
+  font-size: .78rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* ---------------- صورة مصغرة (thumbnail) ---------------- */
+.upload-thumb-wrap{
+  display: none;
+}
+.upload-preview-box.has-image .upload-thumb-wrap{ display: block; }
+
+#uploadPreview{
+  display: block;
+  width: 92px;
+  height: 92px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  cursor: zoom-in;
+  border: 1.5px solid color-mix(in srgb, var(--olive) 45%, transparent);
+  transition: transform .15s ease, border-color .15s ease;
+}
+#uploadPreview:hover{
+  transform: scale(1.04);
+  border-color: var(--coral);
+}
+.upload-thumb-hint{
+  display: block;
+  margin-top: 6px;
+  font-size: .72rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* ---------------- معاينة الصورة بالحجم الكامل (Lightbox) ---------------- */
+.image-lightbox{
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(20, 15, 10, 0.82);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.image-lightbox.active{ display: flex; }
+.image-lightbox img{
+  max-width: min(92vw, 520px);
+  max-height: 86vh;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 20px 60px -10px rgba(0,0,0,0.6);
+  object-fit: contain;
+  background: var(--cream);
+}
+.image-lightbox-close{
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.95);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border: none;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.image-lightbox-close:hover{ background: #fff; color: var(--coral); }
+
+.upload-note{
+  font-size: .82rem;
+  color: var(--ink-soft);
+  background: rgba(238,219,123,0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin: 0;
+  text-align: center;
+}
+[data-theme="dark"] .upload-note{ background: rgba(238,219,123,0.1); }
+
+/* =========================================================
+   حالة "تم الإرسال" بعد التسجيل
+   ========================================================= */
+.pending-state{
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.pending-state.active{ display: flex; }
+.pending-icon{
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(238,219,123,0.35);
+  color: var(--maroon);
+  display: grid;
+  place-items: center;
+}
+[data-theme="dark"] .pending-icon{ background: rgba(238,219,123,0.15); color: var(--gold); }
+.pending-icon svg{ width: 28px; height: 28px; }
+.pending-state h1{ margin: 0; }
+.pending-state p{
+  color: var(--ink-soft);
+  font-size: .92rem;
+  max-width: 360px;
+  margin: 0 0 6px;
+}
+.pending-state .auth-submit{ max-width: 200px; }
+
+/* =========================================================
+   استجابة للموبايل
+   ========================================================= */
+@media (max-width: 520px){
+  .field-row{ grid-template-columns: 1fr; }
+}
+@media (max-width: 480px){
+  .auth-card{ padding: 32px 22px; }
+}

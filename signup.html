@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إنشاء حساب | الظلال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="auth.css">
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<div class="auth-page">
+  <a href="index.html" class="auth-logo">
+    <span class="logo-icon" aria-hidden="true">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+        <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+        <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+      </svg>
+    </span>
+    <span class="logo-text">الظلال</span>
+  </a>
+
+  <div class="auth-card auth-card-wide">
+
+    <!-- ============ شريط التقدم ============ -->
+    <div class="steps-bar" id="stepsBar">
+      <div class="step-dot active" data-step="1"><span>1</span></div>
+      <div class="step-line"></div>
+      <div class="step-dot" data-step="2"><span>2</span></div>
+      <div class="step-line"></div>
+      <div class="step-dot" data-step="3"><span>3</span></div>
+    </div>
+
+    <!-- ============ فورم التسجيل ============ -->
+    <form class="auth-form" id="signupForm" novalidate>
+
+      <!-- خطوة 1: بيانات الطالب -->
+      <fieldset class="form-step active" data-step="1">
+        <h1>بيانات الطالب</h1>
+        <p class="auth-sub">هنبدأ ببيانات الطالب الأساسية</p>
+
+        <label>
+          <span>اسم الطالب بالكامل</span>
+          <input type="text" name="studentName" placeholder="اكتب اسم الطالب بالكامل" required>
+        </label>
+
+        <div class="field-row">
+          <label>
+            <span>رقم هاتف الطالب</span>
+            <input type="tel" name="studentPhone" placeholder="01xxxxxxxxx" pattern="^01[0-9]{9}$" maxlength="11" required>
+          </label>
+          <label>
+            <span>رقم هاتف ولي الأمر</span>
+            <input type="tel" name="parentPhone" placeholder="01xxxxxxxxx" pattern="^01[0-9]{9}$" maxlength="11" required>
+          </label>
+        </div>
+
+        <label>
+          <span>الصف الدراسي</span>
+          <select name="grade" required>
+            <option value="" disabled selected>اختر الصف الدراسي</option>
+            <option value="1">الصف الأول الثانوي</option>
+            <option value="2">الصف الثاني الثانوي</option>
+            <option value="3">الصف الثالث الثانوي</option>
+          </select>
+        </label>
+
+        <button type="button" class="btn btn-solid auth-submit next-step">التالي</button>
+      </fieldset>
+
+      <!-- خطوة 2: العنوان -->
+      <fieldset class="form-step" data-step="2">
+        <h1>العنوان</h1>
+        <p class="auth-sub">هيساعدنا نوصلك بسهولة لو احتجنا كده</p>
+
+        <div class="field-row">
+          <label>
+            <span>المحافظة</span>
+            <select name="governorate" id="governorate" required>
+              <option value="" disabled selected>اختر المحافظة</option>
+            </select>
+          </label>
+          <label>
+            <span>المدينة</span>
+            <input type="text" name="city" placeholder="اسم المدينة" required>
+          </label>
+        </div>
+
+        <label>
+          <span>القرية / الحي</span>
+          <input type="text" name="village" placeholder="اكتب اسم القرية أو الحي" required>
+        </label>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-ghost prev-step">السابق</button>
+          <button type="button" class="btn btn-solid next-step">التالي</button>
+        </div>
+      </fieldset>
+
+      <!-- خطوة 3: كلمة المرور -->
+      <fieldset class="form-step" data-step="3">
+        <h1>الأمان</h1>
+        <p class="auth-sub">آخر خطوة! حدّد كلمة مرور لحسابك</p>
+
+        <div class="field-row">
+          <label>
+            <span>كلمة المرور</span>
+            <input type="password" name="password" placeholder="••••••••" required minlength="6">
+          </label>
+          <label>
+            <span>تأكيد كلمة المرور</span>
+            <input type="password" name="passwordConfirm" placeholder="••••••••" required minlength="6">
+          </label>
+        </div>
+
+        <p class="upload-note">حسابك هيتفعّل بعد ما القسم يراجع البيانات ويتأكد منها.</p>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-ghost prev-step">السابق</button>
+          <button type="submit" class="btn btn-solid">إنشاء الحساب</button>
+        </div>
+      </fieldset>
+
+      <!-- رابط تسجيل الدخول — ظاهر تحت كل خطوة -->
+      <p class="auth-switch">عندك حساب بالفعل؟ <a href="login.html">تسجيل الدخول</a></p>
+    </form>
+
+    <!-- ============ رسالة قيد المراجعة (تظهر بعد الإرسال) ============ -->
+    <div class="pending-state" id="pendingState">
+      <div class="pending-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1>تم إرسال بياناتك بنجاح</h1>
+      <p>هتوصلك رسالة تأكيد. بياناتك وصورة البطاقة اتبعتت وهتتراجع، وحسابك هيتفعّل فور ربط الموقع بالسيرفر والموافقة عليه.</p>
+      <a href="login.html" class="btn btn-solid auth-submit">تسجيل الدخول</a>
+      <p class="auth-switch">عندك حساب بالفعل؟ <a href="login.html">تسجيل الدخول</a></p>
+    </div>
+
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+// قائمة محافظات مصر
+const governorates = [
+  "القاهرة","الجيزة","الإسكندرية","الدقهلية","البحيرة","الفيوم","الغربية",
+  "الإسماعيلية","المنوفية","المنيا","القليوبية","الوادي الجديد","السويس",
+  "أسوان","أسيوط","بني سويف","بورسعيد","دمياط","الشرقية","جنوب سيناء",
+  "كفر الشيخ","مطروح","الأقصر","قنا","شمال سيناء","سوهاج"
+];
+const govSelect = document.getElementById('governorate');
+governorates.forEach(gov => {
+  const opt = document.createElement('option');
+  opt.value = gov;
+  opt.textContent = gov;
+  govSelect.appendChild(opt);
+});
+
+/* ---------------- التنقل بين الخطوات ---------------- */
+const steps = Array.from(document.querySelectorAll('.form-step'));
+const dots = Array.from(document.querySelectorAll('.step-dot'));
+let currentStep = 1;
+
+function showStep(n){
+  steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === n));
+  dots.forEach(d => {
+    const dStep = Number(d.dataset.step);
+    d.classList.toggle('active', dStep === n);
+    d.classList.toggle('done', dStep < n);
+  });
+  currentStep = n;
+  document.querySelector('.auth-card-wide').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function validateStep(n){
+  const stepEl = steps.find(s => Number(s.dataset.step) === n);
+  const inputs = stepEl.querySelectorAll('input[required], select[required]');
+  for(const input of inputs){
+    if(!input.checkValidity()){
+      input.reportValidity();
+      return false;
+    }
+  }
+  if(n === 3){
+    const pass = stepEl.querySelector('[name="password"]').value;
+    const confirm = stepEl.querySelector('[name="passwordConfirm"]').value;
+    if(pass !== confirm){
+      alert('كلمة المرور وتأكيدها غير متطابقين.');
+      return false;
+    }
+  }
+  return true;
+}
+
+document.querySelectorAll('.next-step').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(validateStep(currentStep)) showStep(currentStep + 1);
+  });
+});
+document.querySelectorAll('.prev-step').forEach(btn => {
+  btn.addEventListener('click', () => showStep(currentStep - 1));
+});
+
+/* ---------------- إرسال الفورم ---------------- */
+document.getElementById('signupForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  if(!validateStep(3)) return;
+
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form).entries());
+
+  if(!/^01[0-9]{9}$/.test(data.studentPhone)){
+    alert('رقم هاتف الطالب غير صحيح، لازم يكون 11 رقم ويبدأ بـ 01.');
+    showStep(1);
+    return;
+  }
+
+  const students = JSON.parse(localStorage.getItem('alzilal-students') || '{}');
+  if(students[data.studentPhone]){
+    alert('يوجد حساب مسجل بهذا الرقم بالفعل، برجاء تسجيل الدخول.');
+    return;
+  }
+
+  // حفظ بيانات الطالب محليًا بحالة "قيد المراجعة" — ده تخزين مؤقت في المتصفح
+  // (هيتم ربطه بسيرفر/قاعدة بيانات حقيقية لاحقًا)
+  students[data.studentPhone] = {
+    studentName: data.studentName,
+    studentPhone: data.studentPhone,
+    parentPhone: data.parentPhone,
+    grade: data.grade,
+    governorate: data.governorate,
+    city: data.city,
+    village: data.village,
+    password: data.password,
+    status: 'pending', // pending | approved | rejected
+    createdAt: new Date().toISOString()
+  };
+  localStorage.setItem('alzilal-students', JSON.stringify(students));
+
+  // إظهار رسالة النجاح
+  document.getElementById('signupForm').style.display = 'none';
+  document.getElementById('stepsBar').style.display = 'none';
+  document.getElementById('pendingState').classList.add('active');
+});
+</script>
+</body>
+</html>

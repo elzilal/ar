@@ -1,0 +1,112 @@
+/* =========================================================
+   صفحة الطلاب المقبولين
+   ========================================================= */
+
+.students-header{
+  background: color-mix(in srgb, var(--cream) 85%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  padding: 16px 6vw;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.students-header-inner{
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.students-header .logo{ display: flex; align-items: center; gap: 10px; }
+.students-header .logo-icon{ width: 38px; height: 38px; }
+.students-header .logo-text{
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--maroon);
+}
+[data-theme="dark"] .students-header .logo-text{ color: var(--gold); }
+
+.students-page{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 60px 6vw 90px;
+  text-align: center;
+}
+
+.students-page .section-eyebrow{
+  color: var(--olive);
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.students-page h1{
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  color: var(--maroon);
+  margin: 0 0 10px;
+}
+[data-theme="dark"] .students-page h1{ color: var(--gold); }
+.students-page > .section-head > p{ color: var(--ink-soft); margin: 0 0 26px; }
+
+.students-count-badge{
+  display: inline-block;
+  padding: 10px 24px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--coral), var(--coral-dark));
+  color: #fff;
+  font-weight: 700;
+  font-size: .95rem;
+  margin-bottom: 40px;
+}
+
+.loading-msg, .empty-msg{
+  color: var(--ink-soft);
+  padding: 40px 20px;
+}
+
+.students-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.student-mini-card{
+  background: var(--cream-2);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  border-radius: var(--radius-md);
+  padding: 24px 16px;
+  text-align: center;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.student-mini-card:hover{
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+}
+.student-avatar{
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--olive));
+  color: var(--maroon);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.student-mini-card h3{
+  margin: 0 0 8px;
+  font-size: .98rem;
+  color: var(--ink);
+}
+.student-grade-tag{
+  display: inline-block;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--maroon);
+  background: rgba(238,219,123,0.35);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+[data-theme="dark"] .student-grade-tag{ color: var(--gold); background: rgba(238,219,123,0.12); }

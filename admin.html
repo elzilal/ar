@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التحكم | الظلال</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<!-- ============ شاشة الدخول بالباسورد ============ -->
+<div class="admin-gate" id="adminGate">
+  <div class="admin-gate-card">
+    <span class="logo-icon" aria-hidden="true">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+        <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+        <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+      </svg>
+    </span>
+    <h1>لوحة تحكم الظلال</h1>
+    <p>الصفحة دي خاصة بالإدارة فقط</p>
+    <form id="gateForm">
+      <input type="password" id="adminPasswordInput" placeholder="اكتب كلمة مرور الإدارة" required autocomplete="off">
+      <button type="submit" class="btn btn-solid">دخول</button>
+    </form>
+    <p class="gate-error" id="gateError">كلمة المرور غير صحيحة</p>
+  </div>
+</div>
+
+<!-- ============ لوحة التحكم نفسها ============ -->
+<div class="admin-panel" id="adminPanel">
+
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+            <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+          </svg>
+        </span>
+        <span class="logo-text">لوحة التحكم</span>
+      </a>
+      <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <!-- ============ إحصائيات سريعة ============ -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-num" id="statPending">0</span>
+        <span class="stat-label">قيد المراجعة</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="statApproved">0</span>
+        <span class="stat-label">مقبول</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="statRejected">0</span>
+        <span class="stat-label">مرفوض</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="statTotal">0</span>
+        <span class="stat-label">الإجمالي</span>
+      </div>
+    </div>
+
+    <!-- ============ فلاتر ============ -->
+    <div class="filters-row">
+      <button class="filter-btn active" data-filter="pending">قيد المراجعة</button>
+      <button class="filter-btn" data-filter="approved">مقبول</button>
+      <button class="filter-btn" data-filter="rejected">مرفوض</button>
+      <button class="filter-btn" data-filter="all">الكل</button>
+      <button class="btn btn-ghost refresh-btn" id="refreshBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 12a8 8 0 10-2.34 5.66M20 12v-5M20 12h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        تحديث
+      </button>
+    </div>
+
+    <!-- ============ حالة التحميل / الفراغ ============ -->
+    <p class="loading-msg" id="loadingMsg">جاري تحميل بيانات الطلاب...</p>
+    <p class="empty-msg" id="emptyMsg" style="display:none">مفيش أي طلبات في القسم ده حاليًا</p>
+
+    <!-- ============ قائمة الطلاب ============ -->
+    <div class="students-list" id="studentsList"></div>
+
+  </main>
+</div>
+
+<!-- ============ نافذة تأكيد الرفض ============ -->
+<div class="confirm-modal" id="confirmModal">
+  <div class="confirm-modal-card">
+    <h3>متأكد إنك عايز ترفض الطلب ده؟</h3>
+    <p>هيتم تغيير حالة الطالب إلى "مرفوض"</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="confirmCancel">إلغاء</button>
+      <button class="btn btn-solid confirm-danger" id="confirmOk">تأكيد الرفض</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================
+// حماية بسيطة بكلمة مرور (Client-side gate) — راجع الملاحظة الأمنية في الشرح
+// =========================================================
+const ADMIN_PASSWORD = 'alzilal2026'; // غيّرها لكلمة مرور من اختيارك
+
+const adminGate = document.getElementById('adminGate');
+const adminPanel = document.getElementById('adminPanel');
+const gateForm = document.getElementById('gateForm');
+const gateError = document.getElementById('gateError');
+
+function checkAdminSession(){
+  return sessionStorage.getItem('alzilal-admin-auth') === 'true';
+}
+
+function unlockAdmin(){
+  adminGate.style.display = 'none';
+  adminPanel.style.display = 'block';
+  loadStudents();
+}
+
+if(checkAdminSession()){
+  unlockAdmin();
+}
+
+gateForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const value = document.getElementById('adminPasswordInput').value;
+  if(value === ADMIN_PASSWORD){
+    sessionStorage.setItem('alzilal-admin-auth', 'true');
+    gateError.classList.remove('show');
+    unlockAdmin();
+  }else{
+    gateError.classList.add('show');
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('alzilal-admin-auth');
+  location.reload();
+});
+
+// =========================================================
+// تحميل وعرض بيانات الطلاب
+// =========================================================
+let allStudents = [];
+let currentFilter = 'pending';
+
+const gradeNames = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
+const statusNames = { pending: 'قيد المراجعة', approved: 'مقبول', rejected: 'مرفوض' };
+
+function loadStudents(){
+  document.getElementById('loadingMsg').style.display = 'block';
+  document.getElementById('emptyMsg').style.display = 'none';
+  document.getElementById('studentsList').innerHTML = '';
+
+  try{
+    const students = JSON.parse(localStorage.getItem('alzilal-students') || '{}');
+    allStudents = Object.entries(students)
+      .map(([phone, s]) => ({ id: phone, ...s }))
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+    updateStats();
+    renderStudents();
+  }catch(err){
+    console.error(err);
+    document.getElementById('loadingMsg').textContent = 'حصل خطأ في تحميل البيانات: ' + err.message;
+  }
+}
+
+function updateStats(){
+  document.getElementById('statPending').textContent = allStudents.filter(s => s.status === 'pending').length;
+  document.getElementById('statApproved').textContent = allStudents.filter(s => s.status === 'approved').length;
+  document.getElementById('statRejected').textContent = allStudents.filter(s => s.status === 'rejected').length;
+  document.getElementById('statTotal').textContent = allStudents.length;
+}
+
+function renderStudents(){
+  document.getElementById('loadingMsg').style.display = 'none';
+  const list = document.getElementById('studentsList');
+  const emptyMsg = document.getElementById('emptyMsg');
+
+  const filtered = currentFilter === 'all'
+    ? allStudents
+    : allStudents.filter(s => s.status === currentFilter);
+
+  if(filtered.length === 0){
+    list.innerHTML = '';
+    emptyMsg.style.display = 'block';
+    return;
+  }
+  emptyMsg.style.display = 'none';
+
+  list.innerHTML = filtered.map(s => `
+    <div class="student-card" data-id="${s.id}">
+      <div class="student-card-head">
+        <h3>${escapeHtml(s.studentName || '—')}</h3>
+        <span class="status-badge status-${s.status}">${statusNames[s.status] || s.status}</span>
+      </div>
+      <div class="student-info-grid">
+        <div><span class="info-label">رقم الطالب</span><span class="info-value">${escapeHtml(s.studentPhone || s.id || '—')}</span></div>
+        <div><span class="info-label">رقم ولي الأمر</span><span class="info-value">${escapeHtml(s.parentPhone || '—')}</span></div>
+        <div><span class="info-label">الصف الدراسي</span><span class="info-value">${gradeNames[s.grade] || s.grade || '—'}</span></div>
+        <div><span class="info-label">المحافظة</span><span class="info-value">${escapeHtml(s.governorate || '—')}</span></div>
+        <div><span class="info-label">المدينة</span><span class="info-value">${escapeHtml(s.city || '—')}</span></div>
+        <div><span class="info-label">القرية / الحي</span><span class="info-value">${escapeHtml(s.village || '—')}</span></div>
+      </div>
+      <div class="student-actions">
+        ${s.status !== 'approved' ? `<button class="btn btn-solid approve-btn" data-id="${s.id}">قبول</button>` : ''}
+        ${s.status !== 'rejected' ? `<button class="btn btn-ghost reject-btn" data-id="${s.id}">رفض</button>` : ''}
+        ${s.status !== 'pending' ? `<button class="btn btn-ghost reset-btn" data-id="${s.id}">إرجاع لقيد المراجعة</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  // ربط أزرار القبول
+  list.querySelectorAll('.approve-btn').forEach(btn => {
+    btn.addEventListener('click', () => updateStudentStatus(btn.dataset.id, 'approved'));
+  });
+  // ربط أزرار الرفض (بتأكيد)
+  list.querySelectorAll('.reject-btn').forEach(btn => {
+    btn.addEventListener('click', () => openConfirmModal(btn.dataset.id));
+  });
+  // إرجاع لقيد المراجعة
+  list.querySelectorAll('.reset-btn').forEach(btn => {
+    btn.addEventListener('click', () => updateStudentStatus(btn.dataset.id, 'pending'));
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function updateStudentStatus(id, newStatus){
+  try{
+    const students = JSON.parse(localStorage.getItem('alzilal-students') || '{}');
+    if(!students[id]) throw new Error('الطالب غير موجود');
+    students[id].status = newStatus;
+    localStorage.setItem('alzilal-students', JSON.stringify(students));
+
+    const student = allStudents.find(s => String(s.id) === String(id));
+    if(student) student.status = newStatus;
+    updateStats();
+    renderStudents();
+  }catch(err){
+    console.error(err);
+    alert('حصل خطأ أثناء تحديث حالة الطالب: ' + err.message);
+  }
+}
+
+// =========================================================
+// نافذة تأكيد الرفض
+// =========================================================
+let pendingRejectId = null;
+const confirmModal = document.getElementById('confirmModal');
+
+function openConfirmModal(id){
+  pendingRejectId = id;
+  confirmModal.classList.add('active');
+}
+document.getElementById('confirmCancel').addEventListener('click', () => {
+  confirmModal.classList.remove('active');
+  pendingRejectId = null;
+});
+document.getElementById('confirmOk').addEventListener('click', () => {
+  if(pendingRejectId) updateStudentStatus(pendingRejectId, 'rejected');
+  confirmModal.classList.remove('active');
+  pendingRejectId = null;
+});
+confirmModal.addEventListener('click', (e) => {
+  if(e.target === confirmModal) confirmModal.classList.remove('active');
+});
+
+// =========================================================
+// الفلاتر وزرار التحديث
+// =========================================================
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderStudents();
+  });
+});
+
+document.getElementById('refreshBtn').addEventListener('click', loadStudents);
+</script>
+</body>
+</html>
