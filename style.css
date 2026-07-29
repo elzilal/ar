@@ -421,15 +421,16 @@ ul{ margin:0; padding:0; list-style:none; }
    قسم المدرس
    ========================================================= */
 .about-teacher{
-  padding: 90px 6vw;
-  max-width: 1320px;
-  margin: 0 auto;
+  padding: 90px 0;
+  width: 100%;
+  margin: 0;
   border-top: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
 }
 .about-inner{
   max-width: 760px;
   margin-inline-start: auto;
   margin-inline-end: 0;
+  padding-inline-end: min(6vw, 40px);
   text-align: right;
 }
 .section-eyebrow{
