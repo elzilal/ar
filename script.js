@@ -74,6 +74,28 @@
   if(yearEl) yearEl.textContent = new Date().getFullYear();
 })();
 
+/* ---------------- تحويل الطالب المسجّل دخول تلقائيًا من الصفحة الرئيسية لصفحته ---------------- */
+(function redirectApprovedStudentFromHome(){
+  // نشغّل ده بس في الصفحة الرئيسية (اللي فيها قسم الكورسات coursesGrid)
+  // عشان منأثرش على صفحات تانية بتحمّل نفس الملف زي لوحة الإدارة
+  const coursesGrid = document.getElementById('coursesGrid');
+  if(!coursesGrid) return;
+  if(typeof auth === 'undefined' || typeof db === 'undefined') return;
+
+  auth.onAuthStateChanged(async (user) => {
+    if(!user || !user.email || !user.email.endsWith('@elzilal-student.app')) return;
+    try{
+      const phone = user.email.replace('@elzilal-student.app', '');
+      const snap = await db.collection('students').doc(phone).get();
+      if(snap.exists && snap.data().status === 'approved'){
+        const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
+        const target = gradeToPage[snap.data().grade];
+        if(target) window.location.replace(target);
+      }
+    }catch(e){ console.error(e); }
+  });
+})();
+
 /* ---------------- تحميل بيانات الصفحة الرئيسية من data.json + الكورسات من Firestore ---------------- */
 (function loadHomeData(){
   const coursesGrid = document.getElementById('coursesGrid');
