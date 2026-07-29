@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="auth.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -147,6 +149,7 @@
   </div>
 </div>
 
+<script src="firebase-config.js"></script>
 <script src="script.js"></script>
 <script>
 // قائمة محافظات مصر
@@ -210,7 +213,7 @@ document.querySelectorAll('.prev-step').forEach(btn => {
 });
 
 /* ---------------- إرسال الفورم ---------------- */
-document.getElementById('signupForm').addEventListener('submit', function(e){
+document.getElementById('signupForm').addEventListener('submit', async function(e){
   e.preventDefault();
   if(!validateStep(3)) return;
 
@@ -223,32 +226,45 @@ document.getElementById('signupForm').addEventListener('submit', function(e){
     return;
   }
 
-  const students = JSON.parse(localStorage.getItem('alzilal-students') || '{}');
-  if(students[data.studentPhone]){
-    alert('يوجد حساب مسجل بهذا الرقم بالفعل، برجاء تسجيل الدخول.');
-    return;
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'جاري الإرسال...';
+
+  try{
+    // رقم هاتف الطالب هو الـ document ID عشان نمنع تسجيل نفس الرقم مرتين
+    const studentRef = db.collection('students').doc(data.studentPhone);
+    const existing = await studentRef.get();
+
+    if(existing.exists){
+      alert('يوجد حساب مسجل بهذا الرقم بالفعل، برجاء تسجيل الدخول.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'إنشاء الحساب';
+      return;
+    }
+
+    await studentRef.set({
+      studentName: data.studentName,
+      studentPhone: data.studentPhone,
+      parentPhone: data.parentPhone,
+      grade: data.grade,
+      governorate: data.governorate,
+      city: data.city,
+      village: data.village,
+      password: data.password,
+      status: 'pending', // pending | approved | rejected
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // إظهار رسالة النجاح
+    document.getElementById('signupForm').style.display = 'none';
+    document.getElementById('stepsBar').style.display = 'none';
+    document.getElementById('pendingState').classList.add('active');
+  }catch(err){
+    console.error(err);
+    alert('حصل خطأ أثناء إنشاء الحساب: ' + err.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'إنشاء الحساب';
   }
-
-  // حفظ بيانات الطالب محليًا بحالة "قيد المراجعة" — ده تخزين مؤقت في المتصفح
-  // (هيتم ربطه بسيرفر/قاعدة بيانات حقيقية لاحقًا)
-  students[data.studentPhone] = {
-    studentName: data.studentName,
-    studentPhone: data.studentPhone,
-    parentPhone: data.parentPhone,
-    grade: data.grade,
-    governorate: data.governorate,
-    city: data.city,
-    village: data.village,
-    password: data.password,
-    status: 'pending', // pending | approved | rejected
-    createdAt: new Date().toISOString()
-  };
-  localStorage.setItem('alzilal-students', JSON.stringify(students));
-
-  // إظهار رسالة النجاح
-  document.getElementById('signupForm').style.display = 'none';
-  document.getElementById('stepsBar').style.display = 'none';
-  document.getElementById('pendingState').classList.add('active');
 });
 </script>
 </body>

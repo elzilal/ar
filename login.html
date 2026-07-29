@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="auth.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -47,24 +49,46 @@
   </div>
 </div>
 
+<script src="firebase-config.js"></script>
 <script src="script.js"></script>
 <script>
-document.getElementById('loginForm').addEventListener('submit', function(e){
+document.getElementById('loginForm').addEventListener('submit', async function(e){
   e.preventDefault();
   const form = e.target;
   const data = Object.fromEntries(new FormData(form).entries());
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'جاري الدخول...';
 
-  const students = JSON.parse(localStorage.getItem('alzilal-students') || '{}');
-  const student = students[data.studentPhone];
+  try{
+    const studentRef = db.collection('students').doc(data.studentPhone);
+    const snap = await studentRef.get();
 
-  if(!student || student.password !== data.password){
-    alert('رقم الطالب أو كلمة المرور غير صحيحة.');
-    return;
+    if(!snap.exists || snap.data().password !== data.password){
+      alert('رقم الطالب أو كلمة المرور غير صحيحة.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'تسجيل الدخول';
+      return;
+    }
+
+    const student = snap.data();
+
+    if(student.status !== 'approved'){
+      alert('حسابك لسه قيد المراجعة، هيتفعّل بعد ما القسم يوافق عليه.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'تسجيل الدخول';
+      return;
+    }
+
+    localStorage.setItem('alzilal-current-student', data.studentPhone);
+    alert('تم تسجيل الدخول بنجاح! أهلاً بيك يا ' + student.studentName + ' 👋');
+    window.location.href = 'index.html';
+  }catch(err){
+    console.error(err);
+    alert('حصل خطأ أثناء تسجيل الدخول: ' + err.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'تسجيل الدخول';
   }
-
-  localStorage.setItem('alzilal-current-student', data.studentPhone);
-  alert('تم تسجيل الدخول بنجاح! أهلاً بيك يا ' + student.studentName + ' 👋');
-  window.location.href = 'index.html';
 });
 </script>
 </body>

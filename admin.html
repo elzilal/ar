@@ -10,6 +10,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="admin.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -27,6 +30,7 @@
     <h1>لوحة تحكم الظلال</h1>
     <p>الصفحة دي خاصة بالإدارة فقط</p>
     <form id="gateForm">
+      <input type="email" id="adminEmailInput" placeholder="البريد الإلكتروني" required autocomplete="off">
       <input type="password" id="adminPasswordInput" placeholder="اكتب كلمة مرور الإدارة" required autocomplete="off">
       <button type="submit" class="btn btn-solid">دخول</button>
     </form>
@@ -110,20 +114,15 @@
   </div>
 </div>
 
+<script src="firebase-config.js"></script>
 <script>
 // =========================================================
-// حماية بسيطة بكلمة مرور (Client-side gate) — راجع الملاحظة الأمنية في الشرح
+// تسجيل دخول حقيقي عبر Firebase Authentication
 // =========================================================
-const ADMIN_PASSWORD = 'alzilal2026'; // غيّرها لكلمة مرور من اختيارك
-
 const adminGate = document.getElementById('adminGate');
 const adminPanel = document.getElementById('adminPanel');
 const gateForm = document.getElementById('gateForm');
 const gateError = document.getElementById('gateError');
-
-function checkAdminSession(){
-  return sessionStorage.getItem('alzilal-admin-auth') === 'true';
-}
 
 function unlockAdmin(){
   adminGate.style.display = 'none';
@@ -131,25 +130,46 @@ function unlockAdmin(){
   loadStudents();
 }
 
-if(checkAdminSession()){
-  unlockAdmin();
+function lockAdmin(){
+  adminPanel.style.display = 'none';
+  adminGate.style.display = 'flex';
 }
 
-gateForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const value = document.getElementById('adminPasswordInput').value;
-  if(value === ADMIN_PASSWORD){
-    sessionStorage.setItem('alzilal-admin-auth', 'true');
-    gateError.classList.remove('show');
+// Firebase بيتابع حالة الدخول تلقائيًا، فلو المستخدم مسجل دخول بالفعل
+// (حتى بعد ريفرش للصفحة) هيدخل على طول من غير ما يكتب الباسورد تاني
+auth.onAuthStateChanged((user) => {
+  if(user){
     unlockAdmin();
   }else{
+    lockAdmin();
+  }
+});
+
+gateForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('adminEmailInput').value;
+  const password = document.getElementById('adminPasswordInput').value;
+  const submitBtn = gateForm.querySelector('button[type="submit"]');
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'جاري الدخول...';
+  gateError.classList.remove('show');
+
+  try{
+    await auth.signInWithEmailAndPassword(email, password);
+    // onAuthStateChanged هيتكفل بفتح اللوحة تلقائيًا
+  }catch(err){
+    console.error(err);
+    gateError.textContent = 'البريد أو كلمة المرور غير صحيحة';
     gateError.classList.add('show');
+  }finally{
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'دخول';
   }
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
-  sessionStorage.removeItem('alzilal-admin-auth');
-  location.reload();
+  auth.signOut();
 });
 
 // =========================================================
@@ -161,16 +181,14 @@ let currentFilter = 'pending';
 const gradeNames = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
 const statusNames = { pending: 'قيد المراجعة', approved: 'مقبول', rejected: 'مرفوض' };
 
-function loadStudents(){
+async function loadStudents(){
   document.getElementById('loadingMsg').style.display = 'block';
   document.getElementById('emptyMsg').style.display = 'none';
   document.getElementById('studentsList').innerHTML = '';
 
   try{
-    const students = JSON.parse(localStorage.getItem('alzilal-students') || '{}');
-    allStudents = Object.entries(students)
-      .map(([phone, s]) => ({ id: phone, ...s }))
-      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    const snap = await db.collection('students').orderBy('createdAt', 'desc').get();
+    allStudents = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     updateStats();
     renderStudents();
@@ -245,12 +263,9 @@ function escapeHtml(str){
   return div.innerHTML;
 }
 
-function updateStudentStatus(id, newStatus){
+async function updateStudentStatus(id, newStatus){
   try{
-    const students = JSON.parse(localStorage.getItem('alzilal-students') || '{}');
-    if(!students[id]) throw new Error('الطالب غير موجود');
-    students[id].status = newStatus;
-    localStorage.setItem('alzilal-students', JSON.stringify(students));
+    await db.collection('students').doc(id).update({ status: newStatus });
 
     const student = allStudents.find(s => String(s.id) === String(id));
     if(student) student.status = newStatus;
