@@ -125,13 +125,15 @@
     coursesGrid.innerHTML = courses.map(c => `
       <div class="course-card">
         ${c.image ? `<img src="${escapeHtml(c.image)}" alt="${escapeHtml(c.title || '')}" class="course-card-img" onerror="this.style.display='none'">` : ''}
-        <span class="course-grade">${escapeHtml(gradeLabels[c.grade] || '')}</span>
-        <h3>${escapeHtml(c.title || '')}</h3>
-        <div class="course-price">
-          <span class="amount">${escapeHtml(String(c.price ?? ''))}</span>
-          <span class="currency">${escapeHtml(c.currency || 'جنيه')}</span>
+        <div class="course-card-body">
+          <span class="course-grade">${escapeHtml(gradeLabels[c.grade] || '')}</span>
+          <h3>${escapeHtml(c.title || '')}</h3>
+          <div class="course-price">
+            <span class="amount">${escapeHtml(String(c.price ?? ''))}</span>
+            <span class="currency">${escapeHtml(c.currency || 'جنيه')}</span>
+          </div>
+          <a href="signup.html" class="course-btn" data-course-id="${escapeHtml(c.id)}">اشترك الآن</a>
         </div>
-        <a href="signup.html" class="course-btn" data-course-id="${escapeHtml(c.id)}">اشترك الآن</a>
       </div>
     `).join('');
 
