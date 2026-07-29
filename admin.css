@@ -217,6 +217,15 @@
 .reject-btn{ color: var(--coral); border-color: var(--coral); }
 .reject-btn:hover{ background: rgba(240,75,55,0.08); }
 
+.delete-btn{
+  color: var(--coral-dark);
+  border-color: var(--coral-dark);
+}
+.delete-btn:hover{
+  background: var(--coral-dark);
+  color: #fff;
+}
+
 /* ---------------- نافذة تأكيد الرفض ---------------- */
 .confirm-modal{
   display: none;

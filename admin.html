@@ -140,6 +140,18 @@
   </div>
 </div>
 
+<!-- ============ نافذة تأكيد الحذف النهائي ============ -->
+<div class="confirm-modal" id="deleteModal">
+  <div class="confirm-modal-card">
+    <h3>متأكد إنك عايز تحذف الطالب ده نهائيًا؟</h3>
+    <p>هيتم حذف بيانات الطالب بالكامل من قاعدة البيانات، والعملية دي لا يمكن التراجع عنها</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="deleteCancel">إلغاء</button>
+      <button class="btn btn-solid confirm-danger" id="deleteOk">حذف نهائي</button>
+    </div>
+  </div>
+</div>
+
 <script src="firebase-config.js"></script>
 <script src="script.js"></script>
 <script>
@@ -271,6 +283,7 @@ function renderStudents(){
         ${s.status !== 'approved' ? `<button class="btn btn-solid approve-btn" data-id="${s.id}">قبول</button>` : ''}
         ${s.status !== 'rejected' ? `<button class="btn btn-ghost reject-btn" data-id="${s.id}">رفض</button>` : ''}
         ${s.status !== 'pending' ? `<button class="btn btn-ghost reset-btn" data-id="${s.id}">إرجاع لقيد المراجعة</button>` : ''}
+        <button class="btn btn-ghost delete-btn" data-id="${s.id}">حذف نهائي</button>
       </div>
     </div>
   `).join('');
@@ -286,6 +299,10 @@ function renderStudents(){
   // إرجاع لقيد المراجعة
   list.querySelectorAll('.reset-btn').forEach(btn => {
     btn.addEventListener('click', () => updateStudentStatus(btn.dataset.id, 'pending'));
+  });
+  // ربط أزرار الحذف النهائي (بتأكيد)
+  list.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => openDeleteModal(btn.dataset.id));
   });
 }
 
@@ -317,6 +334,26 @@ async function updateStudentStatus(id, newStatus, isRetry){
   }
 }
 
+async function deleteStudent(id, isRetry){
+  try{
+    await db.collection('students').doc(id).delete();
+
+    allStudents = allStudents.filter(s => String(s.id) !== String(id));
+    updateStats();
+    renderStudents();
+  }catch(err){
+    // نفس منطق إعادة المحاولة بعد تجديد التوكن في حالة صلاحيات متأخرة
+    if(!isRetry && err.code === 'permission-denied' && auth.currentUser){
+      try{
+        await auth.currentUser.getIdToken(true);
+        return deleteStudent(id, true);
+      }catch(e){ /* تجاهل، هنطلع الخطأ الأصلي تحت */ }
+    }
+    console.error(err);
+    alert('حصل خطأ أثناء حذف الطالب: ' + err.message);
+  }
+}
+
 // =========================================================
 // نافذة تأكيد الرفض
 // =========================================================
@@ -338,6 +375,29 @@ document.getElementById('confirmOk').addEventListener('click', () => {
 });
 confirmModal.addEventListener('click', (e) => {
   if(e.target === confirmModal) confirmModal.classList.remove('active');
+});
+
+// =========================================================
+// نافذة تأكيد الحذف النهائي
+// =========================================================
+let pendingDeleteId = null;
+const deleteModal = document.getElementById('deleteModal');
+
+function openDeleteModal(id){
+  pendingDeleteId = id;
+  deleteModal.classList.add('active');
+}
+document.getElementById('deleteCancel').addEventListener('click', () => {
+  deleteModal.classList.remove('active');
+  pendingDeleteId = null;
+});
+document.getElementById('deleteOk').addEventListener('click', () => {
+  if(pendingDeleteId) deleteStudent(pendingDeleteId);
+  deleteModal.classList.remove('active');
+  pendingDeleteId = null;
+});
+deleteModal.addEventListener('click', (e) => {
+  if(e.target === deleteModal) deleteModal.classList.remove('active');
 });
 
 // =========================================================
