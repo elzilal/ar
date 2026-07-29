@@ -89,6 +89,10 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   const fakeEmail = data.studentPhone + '@elzilal-student.app';
 
   try{
+    // نخلي Firebase يفتكر تسجيل الدخول ده حتى لو المستخدم قفل المتصفح وفتحه تاني
+    // (ده الوضع الافتراضي أصلاً، لكن بنحددها صراحةً عشان نضمن إنها شغالة)
+    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
     // أولًا نتحقق من حالة الطالب في Firestore قبل الدخول الفعلي
     const studentRef = db.collection('students').doc(data.studentPhone);
     const snap = await studentRef.get();
