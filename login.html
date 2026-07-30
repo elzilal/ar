@@ -59,12 +59,12 @@
     <form class="auth-form" id="loginForm">
       <label>
         <span>رقم هاتف الطالب</span>
-        <input type="tel" name="studentPhone" placeholder="01xxxxxxxxx" pattern="^01[0-9]{9}$" maxlength="11" required>
+        <input type="tel" name="studentPhone" placeholder="01xxxxxxxxx" pattern="^01[0-9]{9}$" maxlength="11" required autocomplete="username">
       </label>
 
       <label>
         <span>كلمة المرور</span>
-        <input type="password" name="password" placeholder="••••••••" required>
+        <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password">
       </label>
 
       <button type="submit" class="btn btn-solid auth-submit">تسجيل الدخول</button>
@@ -78,12 +78,11 @@
 <script src="script.js"></script>
 <script>
 // =========================================================
-// لو المستخدم داخل بالفعل (جلسة قديمة لسه شغالة)، حوّله على طول
-// من غير ما يضطر يسجل دخول تاني. ده بيتشيك مرة واحدة بس عند فتح الصفحة.
+// لو المستخدم داخل بالفعل (جلسة قديمة لسه شغالة وصالحة)، حوّله على طول
 // =========================================================
 let redirectHandled = false;
 const initialAuthCheck = auth.onAuthStateChanged(async (user) => {
-  initialAuthCheck(); // نشتغل مرة واحدة بس، بعدين نلغي المتابعة فورًا
+  initialAuthCheck();
   if (redirectHandled) return;
 
   if (user && user.email && user.email.endsWith('@elzilal-student.app')) {
@@ -91,15 +90,24 @@ const initialAuthCheck = auth.onAuthStateChanged(async (user) => {
     try {
       const snap = await db.collection('students').doc(phone).get();
       if (snap.exists && snap.data().status === 'approved') {
-        redirectHandled = true;
-        const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
-        window.location.replace(gradeToPage[snap.data().grade] || 'index.html');
+        const mySessionId = localStorage.getItem('alzilal-session-id');
+        const activeSessionId = snap.data().activeSessionId;
+        // مانحولوش تلقائي إلا لو الجلسة المحفوظة عندنا هي فعلاً النشطة
+        if (mySessionId && activeSessionId && mySessionId === activeSessionId) {
+          redirectHandled = true;
+          const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
+          window.location.replace(gradeToPage[snap.data().grade] || 'index.html');
+        }
       }
     } catch (err) {
       console.error('initial auth check failed', err);
     }
   }
 });
+
+function generateSessionId(){
+  return 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+}
 
 document.getElementById('loginForm').addEventListener('submit', async function(e){
   e.preventDefault();
@@ -114,12 +122,8 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   try{
     await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-    // تسجيل الدخول أولًا عبر Firebase Authentication.
-    // (المحاولة القديمة كانت بتقرا من Firestore الأول قبل تسجيل الدخول،
-    //  وده ممكن يترفض من الـ security rules لو الطلب مش موقّع بـ auth بعد)
     const loginCred = await auth.signInWithEmailAndPassword(fakeEmail, data.password);
 
-    // دلوقتي اليوزر مسجل دخول فعليًا في Firebase Auth، نقدر نقرا بياناته بأمان
     const studentRef = db.collection('students').doc(data.studentPhone);
     const snap = await studentRef.get();
 
@@ -141,15 +145,44 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
       return;
     }
 
-    redirectHandled = true;
-    localStorage.setItem('alzilal-current-student', data.studentPhone);
-    submitBtn.textContent = 'تم الدخول، جاري التحويل...';
-
-    // نضمن استقرار التوكن قبل التحويل الكامل بين الصفحات
     await loginCred.user.getIdToken(true);
 
-    const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
-    window.location.href = gradeToPage[student.grade] || 'index.html';
+    // =========================================================
+    // نظام الجلسة الواحدة:
+    // لو مفيش جلسة نشطة حاليًا -> نفتح جلسة جديدة على طول.
+    // لو فيه جلسة نشطة -> نبعت طلب ونستنى موافقة صاحب الجلسة الحالية.
+    // =========================================================
+    if(!student.activeSessionId){
+      const newSessionId = generateSessionId();
+      await studentRef.update({ activeSessionId: newSessionId, sessionRequest: firebase.firestore.FieldValue.delete() });
+      localStorage.setItem('alzilal-session-id', newSessionId);
+      localStorage.setItem('alzilal-current-student', data.studentPhone);
+      redirectHandled = true;
+      submitBtn.textContent = 'تم الدخول، جاري التحويل...';
+      const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
+      window.location.href = gradeToPage[student.grade] || 'index.html';
+      return;
+    }
+
+    // فيه جلسة نشطة بالفعل -> نبعت طلب ونروح لصفحة الانتظار
+    const requestId = generateSessionId();
+    const newSessionId = generateSessionId();
+    await studentRef.update({
+      sessionRequest: {
+        requestId: requestId,
+        requestedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'pending',
+        newSessionId: newSessionId
+      }
+    });
+
+    localStorage.setItem('alzilal-pending-session-id', newSessionId);
+    localStorage.setItem('alzilal-pending-request-id', requestId);
+    localStorage.setItem('alzilal-pending-phone', data.studentPhone);
+    localStorage.setItem('alzilal-pending-grade', student.grade || '');
+
+    window.location.href = 'session-wait.html';
+
   }catch(err){
     console.error(err);
     let msg = 'رقم الطالب أو كلمة المرور غير صحيحة.';
