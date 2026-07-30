@@ -30,8 +30,8 @@
 
 <!-- ============ حارس الوصول (يظهر لو مفيش صلاحية) ============ -->
 <div class="access-guard" id="accessGuard" style="display:block">
-  <h1 id="guardTitle">بنتحقق من حسابك...</h1>
-  <p id="guardText">استنى لحظة من فضلك</p>
+  <h1 id="guardTitle">جاري التحميل...</h1>
+  <p id="guardText"></p>
   <a href="login.html" class="btn btn-solid" id="guardBtn" style="display:none">تسجيل الدخول</a>
 </div>
 
@@ -131,117 +131,124 @@ function showKickedOverlay(message){
 let currentStudent = null;
 let currentStudentId = null;
 let studentDocUnsubscribe = null;
-
 let settled = false;
-let sawNullOnce = false;
 
-const graceTimer = setTimeout(() => {
-  if(!settled){
-    settled = true;
-    unsubscribeAuth();
-    showGuard('لازم تسجل دخول الأول', 'الصفحة دي متاحة للطلاب المسجلين والمقبولين فقط.', true);
-  }
-}, 5000);
-
-const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
-  if(settled) return;
-
-  if(!user){
-    if(sawNullOnce) return;
-    sawNullOnce = true;
-    return;
-  }
-
-  // أحيانًا Firebase بيرجع user لكن بيانات التوكن (زي الإيميل) لسه
-  // مش وصلت بالكامل. بدل ما نرفض الطالب غلط، نستنى تحديث تاني بدل
-  // ما نعتبرها "مش مسموح" على طول.
-  if(!user.email){
-    try{ await user.reload(); }catch(e){ console.error(e); }
-    if(!auth.currentUser || !auth.currentUser.email){
-      return; // نستنى الـ onAuthStateChanged التالي، ما نرفضش دلوقتي
-    }
-    user = auth.currentUser;
-  }
-
-  settled = true;
-  clearTimeout(graceTimer);
-  unsubscribeAuth();
-
-  if(!user.email.endsWith('@elzilal-student.app')){
-    showGuard('الوصول غير مسموح', 'الصفحة دي مخصصة لحسابات الطلاب فقط.', false);
-    return;
-  }
-
-  const phone = user.email.replace('@elzilal-student.app', '');
-
+// =========================================================
+// مهم جدًا: نضمن إن الجلسة بتتحفظ محليًا بشكل دائم (LOCAL)
+// حتى لو الطالب دخل الصفحة دي مباشرة من غير ما يعدي بلوجين
+// في نفس التاب. ده بيمنع فقدان تسجيل الدخول لما يقفل ويرجع
+// يفتح التطبيق/الموقع تاني.
+// =========================================================
+async function checkAuth(){
   try{
-    const snap = await db.collection('students').doc(phone).get();
-    if(!snap.exists){
-      showGuard('حسابك غير موجود', 'حصل خطأ في بيانات حسابك، تواصل مع الإدارة.', false);
+    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  }catch(e){ console.error('persistence error', e); }
+
+  // مفيش أي تايمر بيقفل بالقوة هنا. بننتظر Firebase يرد فعليًا
+  // مهما استغرق، عشان مانرفضش طالب مسجل دخول فعلاً بسبب نت بطيء.
+  auth.onAuthStateChanged(async (user) => {
+    if(settled) return;
+
+    if(!user){
+      settled = true;
+      showGuard('لازم تسجل دخول الأول', 'الصفحة دي متاحة للطلاب المسجلين والمقبولين فقط.', true);
       return;
     }
 
-    const student = snap.data();
+    // أحيانًا Firebase بيرجع user لكن بيانات التوكن (زي الإيميل) لسه
+    // مش وصلت بالكامل. نجبر تحديث حقيقي للمستخدم بدل ما نرفضه غلط.
+    if(!user.email){
+      try{
+        await user.reload();
+        user = auth.currentUser;
+      }catch(e){ console.error(e); }
+    }
 
-    if(student.status !== 'approved'){
-      showGuard('حسابك لسه قيد المراجعة', 'هيتفعّل بعد ما القسم يوافق عليه، حاول تاني بعدين.', false);
+    if(!user || !user.email){
+      // لسه معندناش بيانات كافية؛ نستنى تحديث تاني من Firebase
+      // (onAuthStateChanged هيتصدى تاني تلقائيًا لو فيه تغيير حقيقي)
       return;
     }
 
-    if(String(student.grade) !== String(PAGE_GRADE)){
-      const correctUrl = PAGE_URL_BY_GRADE[String(student.grade)];
-      const currentPage = window.location.pathname.split('/').pop();
-      if(correctUrl && correctUrl !== currentPage){
-        window.location.replace(correctUrl);
-      }else if(!correctUrl){
-        showGuard('حصل خطأ', 'صفك الدراسي غير محدد بشكل صحيح، تواصل مع الإدارة.', false);
+    settled = true;
+
+    if(!user.email.endsWith('@elzilal-student.app')){
+      showGuard('الوصول غير مسموح', 'الصفحة دي مخصصة لحسابات الطلاب فقط.', false);
+      return;
+    }
+
+    const phone = user.email.replace('@elzilal-student.app', '');
+
+    try{
+      const snap = await db.collection('students').doc(phone).get();
+      if(!snap.exists){
+        showGuard('حسابك غير موجود', 'حصل خطأ في بيانات حسابك، تواصل مع الإدارة.', false);
+        return;
       }
-      return;
-    }
 
-    // =========================================================
-    // نظام الجلسة المبسّط:
-    // مصدر الحقيقة الوحيد هو مستند الطالب في القاعدة (activeSessionId).
-    // لو معانا session id محفوظ محليًا ومختلف عن اللي في القاعدة،
-    // معناها فيه جهاز تاني سجل دخول بعدنا -> نطلع الطالب برسالة واضحة.
-    // لو معاناش session id محلي خالص (أول مرة، أو localStorage اتمسح)
-    // بس التوكن بتاعنا صحيح وموافَق عليه، نعتمد على الجلسة الموجودة
-    // في القاعدة كأساس بدل ما نرفض الطالب من حسابه بالغلط.
-    // =========================================================
-    let mySessionId = localStorage.getItem('alzilal-session-id');
+      const student = snap.data();
 
-    if(!mySessionId){
-      if(student.activeSessionId){
-        mySessionId = student.activeSessionId;
-        localStorage.setItem('alzilal-session-id', mySessionId);
-      }else{
-        const newId = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
-        await db.collection('students').doc(phone).update({ activeSessionId: newId });
-        mySessionId = newId;
-        localStorage.setItem('alzilal-session-id', newId);
+      if(student.status !== 'approved'){
+        showGuard('حسابك لسه قيد المراجعة', 'هيتفعّل بعد ما القسم يوافق عليه، حاول تاني بعدين.', false);
+        return;
       }
-    }else if(student.activeSessionId && student.activeSessionId !== mySessionId){
-      // حد سجل دخول من جهاز تاني وبقى هو الجلسة النشطة
-      localStorage.removeItem('alzilal-session-id');
-      localStorage.removeItem('alzilal-current-student');
-      auth.signOut().then(() => showKickedOverlay('تم تسجيل خروجك بسبب دخول شخص آخر لحسابك.'));
-      return;
+
+      if(String(student.grade) !== String(PAGE_GRADE)){
+        const correctUrl = PAGE_URL_BY_GRADE[String(student.grade)];
+        const currentPage = window.location.pathname.split('/').pop();
+        if(correctUrl && correctUrl !== currentPage){
+          window.location.replace(correctUrl);
+        }else if(!correctUrl){
+          showGuard('حصل خطأ', 'صفك الدراسي غير محدد بشكل صحيح، تواصل مع الإدارة.', false);
+        }
+        return;
+      }
+
+      // =========================================================
+      // نظام الجلسة المبسّط:
+      // مصدر الحقيقة الوحيد هو مستند الطالب في القاعدة (activeSessionId).
+      // لو معانا session id محفوظ محليًا ومختلف عن اللي في القاعدة،
+      // معناها فيه جهاز تاني سجل دخول بعدنا -> نطلع الطالب برسالة واضحة.
+      // لو معاناش session id محلي خالص، نعتمد على الجلسة الموجودة في
+      // القاعدة كأساس بدل ما نرفض الطالب من حسابه بالغلط.
+      // =========================================================
+      let mySessionId = localStorage.getItem('alzilal-session-id');
+
+      if(!mySessionId){
+        if(student.activeSessionId){
+          mySessionId = student.activeSessionId;
+          localStorage.setItem('alzilal-session-id', mySessionId);
+        }else{
+          const newId = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
+          await db.collection('students').doc(phone).update({ activeSessionId: newId });
+          mySessionId = newId;
+          localStorage.setItem('alzilal-session-id', newId);
+        }
+      }else if(student.activeSessionId && student.activeSessionId !== mySessionId){
+        // حد سجل دخول من جهاز تاني وبقى هو الجلسة النشطة
+        localStorage.removeItem('alzilal-session-id');
+        localStorage.removeItem('alzilal-current-student');
+        auth.signOut().then(() => showKickedOverlay('تم تسجيل خروجك بسبب دخول شخص آخر لحسابك.'));
+        return;
+      }
+
+      currentStudent = student;
+      currentStudentId = phone;
+      localStorage.setItem('alzilal-current-student', phone);
+      document.getElementById('studentNameChip').textContent = student.studentName || 'الطالب';
+      accessGuard.style.display = 'none';
+      pageContent.style.display = 'block';
+      loadCourses();
+      watchSession(phone);
+
+    }catch(err){
+      console.error(err);
+      showGuard('حصل خطأ', 'مقدرناش نتحقق من حسابك، حاول تاني.', false);
     }
+  });
+}
 
-    currentStudent = student;
-    currentStudentId = phone;
-    localStorage.setItem('alzilal-current-student', phone);
-    document.getElementById('studentNameChip').textContent = student.studentName || 'الطالب';
-    accessGuard.style.display = 'none';
-    pageContent.style.display = 'block';
-    loadCourses();
-    watchSession(phone);
-
-  }catch(err){
-    console.error(err);
-    showGuard('حصل خطأ', 'مقدرناش نتحقق من حسابك، حاول تاني.', false);
-  }
-});
+checkAuth();
 
 // =========================================================
 // مراقبة حية لمستند الطالب: لو حد سجل دخول من جهاز تاني أثناء
@@ -396,4 +403,3 @@ function escapeHtml(str){
 </script>
 </body>
 </html>
-
