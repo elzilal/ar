@@ -1,7 +1,74 @@
 /* =========================================================
    صفحة رفع الفيديوهات (upload-videos.html)
-   تستخدم نفس أنماط admin.css و courses.css + إضافات هنا
+   تستخدم نفس أنماط admin.css + إضافات هنا
+   (تعريفات المودال مكررة هنا عمدًا عشان الصفحة تفضل شغالة
+   حتى لو ملف courses.css مش موجود أو متأخر في الرفع)
    ========================================================= */
+
+/* ---------------- نافذة إضافة / تعديل (مخفية افتراضيًا) ---------------- */
+.course-modal{
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(20,15,10,0.6);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.course-modal.active{ display: flex; }
+.course-modal-card{
+  background: var(--cream-2);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: var(--shadow-soft);
+  margin: auto;
+}
+.course-modal-card h3{
+  margin: 0 0 20px;
+  color: var(--maroon);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  text-align: center;
+}
+[data-theme="dark"] .course-modal-card h3{ color: var(--gold); }
+
+.course-form label{
+  display: block;
+  margin-bottom: 16px;
+}
+.course-form label span{
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: .88rem;
+  color: var(--ink);
+}
+.course-form input,
+.course-form select{
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid color-mix(in srgb, var(--olive) 45%, transparent);
+  background: var(--cream);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: .92rem;
+}
+.course-form input:focus,
+.course-form select:focus{
+  outline: none;
+  border-color: var(--coral);
+}
+.course-form-actions{
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+.course-form-actions .btn{ flex: 1; }
 
 .course-form textarea{
   width: 100%;
@@ -38,4 +105,4 @@
   color: var(--coral);
   margin-bottom: 16px;
 }
-.video-link:hover{ text-decoration: underline; }
+.video-link:hover{ text-decoration: underline; }ؤ
