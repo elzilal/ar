@@ -228,6 +228,15 @@
   const splash = document.getElementById('splashScreen');
   if(!splash) return;
 
+  // لو جاي لتوّه من إلغاء طلب جلسة (session-wait.html)، نتخطى التحقق
+  // التلقائي مرة واحدة بس ونعرض الصفحة الرئيسية عادي زي أي زائر —
+  // العلامة دي بتتمسح فورًا عشان أي زيارة تانية بعد كده تتحقق طبيعي.
+  if(sessionStorage.getItem('alzilal-skip-splash-check') === '1'){
+    sessionStorage.removeItem('alzilal-skip-splash-check');
+    splash.remove();
+    return;
+  }
+
   const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
   let decided = false;
 
