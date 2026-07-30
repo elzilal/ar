@@ -169,7 +169,7 @@ const graceTimer = setTimeout(() => {
     unsubscribeAuth();
     showGuard('لازم تسجل دخول الأول', 'الصفحة دي متاحة للطلاب المسجلين والمقبولين فقط.', true);
   }
-}, 3000);
+}, 5000);
 
 const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
   if(settled) return;
@@ -180,11 +180,22 @@ const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
     return;
   }
 
+  // أحيانًا Firebase بيرجع user لكن بيانات التوكن (زي الإيميل) لسه
+  // مش وصلت بالكامل. بدل ما نرفض الطالب غلط، نستنى تحديث تاني بدل
+  // ما نعتبرها "مش مسموح" على طول.
+  if(!user.email){
+    try{ await user.reload(); }catch(e){ console.error(e); }
+    if(!auth.currentUser || !auth.currentUser.email){
+      return; // نستنى الـ onAuthStateChanged التالي، ما نرفضش دلوقتي
+    }
+    user = auth.currentUser;
+  }
+
   settled = true;
   clearTimeout(graceTimer);
   unsubscribeAuth();
 
-  if(!user.email || !user.email.endsWith('@elzilal-student.app')){
+  if(!user.email.endsWith('@elzilal-student.app')){
     showGuard('الوصول غير مسموح', 'الصفحة دي مخصصة لحسابات الطلاب فقط.', false);
     return;
   }
