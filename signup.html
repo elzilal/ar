@@ -275,6 +275,10 @@ document.getElementById('signupForm').addEventListener('submit', async function(
     // إنشاء حساب حقيقي في Firebase Authentication (كلمة السر بتتشفّر تلقائيًا)
     const cred = await auth.createUserWithEmailAndPassword(fakeEmail, data.password);
 
+    if(!cred || !cred.user || !cred.user.uid){
+      throw new Error('فشل إنشاء المستخدم في Authentication، cred.user غير موجود');
+    }
+
     const studentPayload = {
       uid: cred.user.uid,
       studentName: data.studentName,
@@ -320,12 +324,12 @@ document.getElementById('signupForm').addEventListener('submit', async function(
     document.getElementById('stepsBar').style.display = 'none';
     document.getElementById('pendingState').classList.add('active');
   }catch(err){
-    console.error(err);
+    console.error('SIGNUP ERROR FULL DETAILS:', err);
     let msg = err.message;
     if(err.code === 'auth/email-already-in-use') msg = 'يوجد حساب مسجل بهذا الرقم بالفعل، برجاء تسجيل الدخول.';
     if(err.code === 'auth/weak-password') msg = 'كلمة المرور ضعيفة، لازم تكون 6 أحرف على الأقل.';
-    if(err.code === 'permission-denied') msg = 'حصلت مشكلة صلاحيات مستمرة. كود الخطأ: ' + (err.code || 'غير معروف') + ' — ' + err.message;
-    alert('حصل خطأ أثناء إنشاء الحساب: ' + msg);
+    // تشخيص مؤقت: بنعرض تفاصيل الخطأ كاملة عشان نلاقي السبب الحقيقي بالظبط
+    alert('حصل خطأ أثناء إنشاء الحساب:\n\nكود الخطأ: ' + (err.code || 'لا يوجد كود') + '\nالرسالة: ' + err.message + '\n\nيوزر مسجل دخول حاليًا؟ ' + (auth.currentUser ? ('نعم - ' + auth.currentUser.email) : 'لا') + '\nUID الحالي: ' + (auth.currentUser ? auth.currentUser.uid : 'لا يوجد'));
     submitBtn.disabled = false;
     submitBtn.textContent = 'إنشاء الحساب';
   }
