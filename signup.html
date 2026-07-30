@@ -261,16 +261,13 @@ document.getElementById('signupForm').addEventListener('submit', async function(
   const fakeEmail = data.studentPhone + '@elzilal-student.app';
 
   try{
-    // نتأكد الأول إن رقم الطالب مش مسجل قبل كده في Firestore
     const studentRef = db.collection('students').doc(data.studentPhone);
-    const existing = await studentRef.get();
 
-    if(existing.exists){
-      alert('يوجد حساب مسجل بهذا الرقم بالفعل، برجاء تسجيل الدخول.');
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'إنشاء الحساب';
-      return;
-    }
+    // ملحوظة: ما بنعملش .get() هنا قبل تسجيل الدخول عشان قواعد الأمان في Firestore
+    // بترفض القراءة لمستخدم غير مسجل دخول أصلاً (request.auth == null في اللحظة دي).
+    // بدل كده، بنعتمد على Firebase Authentication نفسها للكشف عن الرقم المكرر:
+    // لو الرقم مسجل قبل كده، createUserWithEmailAndPassword هترفض بكود
+    // auth/email-already-in-use ونعرضله رسالة واضحة في catch تحت.
 
     // إنشاء حساب حقيقي في Firebase Authentication (كلمة السر بتتشفّر تلقائيًا)
     const cred = await auth.createUserWithEmailAndPassword(fakeEmail, data.password);
@@ -328,8 +325,8 @@ document.getElementById('signupForm').addEventListener('submit', async function(
     let msg = err.message;
     if(err.code === 'auth/email-already-in-use') msg = 'يوجد حساب مسجل بهذا الرقم بالفعل، برجاء تسجيل الدخول.';
     if(err.code === 'auth/weak-password') msg = 'كلمة المرور ضعيفة، لازم تكون 6 أحرف على الأقل.';
-    // تشخيص مؤقت: بنعرض تفاصيل الخطأ كاملة عشان نلاقي السبب الحقيقي بالظبط
-    alert('حصل خطأ أثناء إنشاء الحساب:\n\nكود الخطأ: ' + (err.code || 'لا يوجد كود') + '\nالرسالة: ' + err.message + '\n\nيوزر مسجل دخول حاليًا؟ ' + (auth.currentUser ? ('نعم - ' + auth.currentUser.email) : 'لا') + '\nUID الحالي: ' + (auth.currentUser ? auth.currentUser.uid : 'لا يوجد'));
+    if(err.code === 'permission-denied') msg = 'حصلت مشكلة صلاحيات. كود الخطأ: ' + err.code + ' — ' + err.message;
+    alert('حصل خطأ أثناء إنشاء الحساب: ' + msg);
     submitBtn.disabled = false;
     submitBtn.textContent = 'إنشاء الحساب';
   }
