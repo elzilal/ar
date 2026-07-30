@@ -41,7 +41,6 @@
   </button>
 </div>
 
-
 <div class="auth-page">
   <a href="index.html" class="auth-logo">
     <span class="logo-icon" aria-hidden="true">
@@ -78,6 +77,30 @@
 <script src="firebase-config.js"></script>
 <script src="script.js"></script>
 <script>
+// =========================================================
+// لو المستخدم داخل بالفعل (جلسة قديمة لسه شغالة)، حوّله على طول
+// من غير ما يضطر يسجل دخول تاني. ده بيتشيك مرة واحدة بس عند فتح الصفحة.
+// =========================================================
+let redirectHandled = false;
+const initialAuthCheck = auth.onAuthStateChanged(async (user) => {
+  initialAuthCheck(); // نشتغل مرة واحدة بس، بعدين نلغي المتابعة فورًا
+  if (redirectHandled) return;
+
+  if (user && user.email && user.email.endsWith('@elzilal-student.app')) {
+    const phone = user.email.replace('@elzilal-student.app', '');
+    try {
+      const snap = await db.collection('students').doc(phone).get();
+      if (snap.exists && snap.data().status === 'approved') {
+        redirectHandled = true;
+        const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
+        window.location.replace(gradeToPage[snap.data().grade] || 'index.html');
+      }
+    } catch (err) {
+      console.error('initial auth check failed', err);
+    }
+  }
+});
+
 document.getElementById('loginForm').addEventListener('submit', async function(e){
   e.preventDefault();
   const form = e.target;
@@ -89,25 +112,26 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   const fakeEmail = data.studentPhone + '@elzilal-student.app';
 
   try{
-    // نخلي Firebase يفتكر تسجيل الدخول ده حتى لو المستخدم قفل المتصفح وفتحه تاني
-    // (ده الوضع الافتراضي أصلاً، لكن بنحددها صراحةً عشان نضمن إنها شغالة)
     await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-    // أولًا نتحقق من حالة الطالب في Firestore قبل الدخول الفعلي
+    // تسجيل الدخول أولًا عبر Firebase Authentication.
+    // (المحاولة القديمة كانت بتقرا من Firestore الأول قبل تسجيل الدخول،
+    //  وده ممكن يترفض من الـ security rules لو الطلب مش موقّع بـ auth بعد)
+    const loginCred = await auth.signInWithEmailAndPassword(fakeEmail, data.password);
+
+    // دلوقتي اليوزر مسجل دخول فعليًا في Firebase Auth، نقدر نقرا بياناته بأمان
     const studentRef = db.collection('students').doc(data.studentPhone);
     const snap = await studentRef.get();
 
     if(!snap.exists){
-      alert('رقم الطالب أو كلمة المرور غير صحيحة.');
+      await auth.signOut();
+      alert('حسابك غير موجود، تواصل مع الإدارة.');
       submitBtn.disabled = false;
       submitBtn.textContent = 'تسجيل الدخول';
       return;
     }
 
     const student = snap.data();
-
-    // تسجيل الدخول عبر Firebase Authentication (بيتحقق من كلمة السر المشفّرة)
-    const loginCred = await auth.signInWithEmailAndPassword(fakeEmail, data.password);
 
     if(student.status !== 'approved'){
       await auth.signOut();
@@ -117,19 +141,13 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
       return;
     }
 
+    redirectHandled = true;
     localStorage.setItem('alzilal-current-student', data.studentPhone);
     submitBtn.textContent = 'تم الدخول، جاري التحويل...';
 
-    // نجبر تحديث التوكن ونستنى لحظة فعلية قبل ما نعمل تحويل كامل للصفحة (full page navigation).
-    // ده مهم جدًا: من غيره، أحيانًا صفحة sec1/2/3 بتفتح وتقرأ حالة "مفيش يوزر مسجل دخول"
-    // رغم إن تسجيل الدخول نجح فعلاً، لأن حالة الجلسة (session) لسه ما استقرتش
-    // في تخزين المتصفح (IndexedDB) قبل ما نعمل الانتقال الكامل بين الصفحات.
-    if(loginCred && loginCred.user){
-      await loginCred.user.getIdToken(true);
-    }
-    await new Promise(r => setTimeout(r, 400));
+    // نضمن استقرار التوكن قبل التحويل الكامل بين الصفحات
+    await loginCred.user.getIdToken(true);
 
-    // تحويل الطالب مباشرة لصفحة صفه الدراسي
     const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
     window.location.href = gradeToPage[student.grade] || 'index.html';
   }catch(err){
