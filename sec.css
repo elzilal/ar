@@ -212,3 +212,69 @@
 }
 [data-theme="dark"] .access-guard h1{ color: var(--gold); }
 .access-guard p{ color: var(--ink-soft); margin: 0 0 24px; }
+
+/* ============ حالة الاشتراك جوه كارت الكورس (نفس شكل index.html) ============
+   الكارت بقى بنفس تصميم الصفحة الرئيسية: صورة خلفية كاملة + تعتيم تدريجي
+   أسود، فالعناصر دي لازم ألوانها تتناسب مع خلفية غامقة بدل الفاتحة. */
+.sec-course-status{ margin-top: 4px; }
+
+.sec-course-status .status-pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .72rem;
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+}
+.sec-course-status .status-pill.open{
+  background: linear-gradient(135deg, #6EAE5C, #4E8B3E);
+  color: #fff;
+}
+.sec-course-status .status-pill.pending{
+  background: var(--gold);
+  color: var(--maroon);
+}
+.sec-course-status .status-pill.rejected{
+  background: rgba(240,75,55,0.9);
+  color: #fff;
+}
+
+.sec-course-status .sec-enroll-btn{
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 9px;
+  border-radius: var(--radius-sm);
+  background: var(--gold);
+  color: var(--maroon);
+  font-weight: 700;
+  font-size: .8rem;
+  transition: transform .2s ease, box-shadow .2s ease;
+  box-sizing: border-box;
+}
+.sec-course-status .sec-enroll-btn:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -8px rgba(0,0,0,0.5);
+}
+
+.sec-course-status .sec-cancel-btn{
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 7px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff;
+  font-weight: 700;
+  font-size: .72rem;
+  margin-top: 6px;
+  transition: background .2s ease;
+  box-sizing: border-box;
+}
+.sec-course-status .sec-cancel-btn:hover{ background: rgba(255,255,255,0.18); }
