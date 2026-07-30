@@ -179,8 +179,7 @@ const gateError = document.getElementById('gateError');
 function unlockAdmin(){
   adminGate.style.display = 'none';
   adminPanel.style.display = 'block';
-  loadCoursesForSelect();
-  loadVideos();
+  loadCoursesForSelect().then(loadVideos);
 }
 function lockAdmin(){
   adminPanel.style.display = 'none';
@@ -298,19 +297,14 @@ function renderVideos(){
       <div style="margin-bottom:12px;">
         <span class="order-course-tag">${escapeHtml(courseTitleFor(v.courseId))}</span>
       </div>
-      <div class="student-info-grid">
-        <div style="grid-column: 1 / -1;">
-          <span class="info-label">تفاصيل الدرس</span>
-          <span class="info-value">${escapeHtml(v.details || '')}</span>
-        </div>
-        <div style="grid-column: 1 / -1;">
-          <span class="info-label">لينك الفيديو</span>
-          <span class="info-value"><a href="${escapeHtml(v.videoUrl || '#')}" target="_blank" rel="noopener">${escapeHtml(v.videoUrl || '')}</a></span>
-        </div>
-      </div>
+      <p class="video-details">${escapeHtml(v.details || '')}</p>
+      <a class="video-link" href="${escapeHtml(v.videoUrl || '#')}" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16"><path d="M23 7l-7 5 7 5V7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 5H3a2 2 0 00-2 2v10a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        مشاهدة الفيديو
+      </a>
       <div class="student-actions">
         <button class="btn btn-ghost edit-video-btn" data-id="${v.id}">تعديل</button>
-        <button class="btn btn-ghost delete-btn delete-video-btn" data-id="${v.id}">حذف نهائي</button>
+        <button class="btn btn-ghost reject-btn delete-video-btn" data-id="${v.id}">حذف نهائي</button>
       </div>
     </div>
   `).join('');
