@@ -75,36 +75,13 @@
 })();
 
 /* ---------------- تحويل الطالب المسجّل دخول تلقائيًا من الصفحة الرئيسية لصفحته ----------------
-   ملحوظة مهمة: الكود ده لازم يشتغل بس في index.html.
-   الاعتماد القديم على وجود #coursesGrid كان غلط، لأن صفحات sec1/2/3.html
-   عندها عنصر بنفس المعرّف (#coursesGrid) لغرض تاني تمامًا (شبكة كورسات الطالب).
-   النتيجة كانت: listener تاني مستقل لـ onAuthStateChanged بيشتغل جنب اللي
-   جوه sec*.html نفسه، وبيعمل window.location.replace حتى لو الطالب واقف
-   صح في صفحته أصلاً — وده اللي كان بيسبب الريفرش المتكرر ودورة "تسجيل دخول".
-   الفحص الصحيح: نتأكد إننا في index.html فعليًا عن طريق مسار الصفحة،
-   مش بس وجود عنصر معين.
+   تم إيقاف الميزة دي تمامًا بناءً على طلب صاحب الموقع: صفحة index.html
+   لازم تفضل تفتح عادي لأي زائر (حتى لو مسجل دخول وعنده جلسة نشطة) من
+   غير أي تحقق أو تحويل تلقائي. الدالة اتسابت هنا فاضية (بترجع فورًا)
+   بدل ما تتمسح تمامًا، عشان لو حبينا نرجعها تاني في المستقبل يبقى سهل.
    ========================================================= */
 (function redirectApprovedStudentFromHome(){
-  const currentPage = window.location.pathname.split('/').pop();
-  const isHomePage = currentPage === '' || currentPage === 'index.html';
-  if(!isHomePage) return;
-
-  const coursesGrid = document.getElementById('coursesGrid');
-  if(!coursesGrid) return;
-  if(typeof auth === 'undefined' || typeof db === 'undefined') return;
-
-  auth.onAuthStateChanged(async (user) => {
-    if(!user || !user.email || !user.email.endsWith('@elzilal-student.app')) return;
-    try{
-      const phone = user.email.replace('@elzilal-student.app', '');
-      const snap = await db.collection('students').doc(phone).get();
-      if(snap.exists && snap.data().status === 'approved'){
-        const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
-        const target = gradeToPage[snap.data().grade];
-        if(target && target !== currentPage) window.location.replace(target);
-      }
-    }catch(e){ console.error(e); }
-  });
+  return; // الميزة متوقفة عمدًا — index.html من غير أي تحقق تلقائي
 })();
 
 /* ---------------- تحميل بيانات الصفحة الرئيسية من data.json + الكورسات من Firestore ---------------- */
