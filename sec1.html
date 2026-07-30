@@ -17,24 +17,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
-  .session-modal-overlay{
-    position:fixed; inset:0; background:rgba(0,0,0,.55);
-    display:flex; align-items:center; justify-content:center;
-    z-index:9999; padding:20px;
-  }
-  .session-modal{
-    background:var(--bg-card, #fff); border-radius:16px; padding:28px 24px;
-    max-width:380px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.3);
-  }
-  .session-modal h2{ margin:0 0 10px; font-size:19px; }
-  .session-modal p{ margin:0 0 20px; font-size:14px; opacity:.8; }
-  .session-modal-actions{ display:flex; gap:10px; justify-content:center; }
-  .session-modal-actions button{
-    flex:1; padding:10px 16px; border-radius:10px; border:none;
-    font-weight:700; cursor:pointer; font-family:inherit; font-size:15px;
-  }
-  .session-btn-yes{ background:var(--maroon,#7a1f2b); color:#fff; }
-  .session-btn-no{ background:#eee; color:#222; }
   .session-kicked-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,.75);
     display:flex; align-items:center; justify-content:center;
@@ -51,18 +33,6 @@
   <h1 id="guardTitle">بنتحقق من حسابك...</h1>
   <p id="guardText">استنى لحظة من فضلك</p>
   <a href="login.html" class="btn btn-solid" id="guardBtn" style="display:none">تسجيل الدخول</a>
-</div>
-
-<!-- ============ نافذة "هل ده انت؟" ============ -->
-<div class="session-modal-overlay" id="sessionRequestModal" style="display:none">
-  <div class="session-modal">
-    <h2>في حد عايز يستخدم حسابك</h2>
-    <p>حد حاول يسجل دخول بحسابك من جهاز تاني. هل ده انت؟</p>
-    <div class="session-modal-actions">
-      <button class="session-btn-yes" id="sessionApproveBtn">أه، ده انا</button>
-      <button class="session-btn-no" id="sessionRejectBtn">لا</button>
-    </div>
-  </div>
 </div>
 
 <!-- ============ الصفحة الفعلية ============ -->
@@ -113,7 +83,7 @@
     <p class="loading-msg" id="loadingMsg">جاري تحميل الكورسات...</p>
     <p class="empty-msg" id="emptyMsg" style="display:none">لسه مفيش كورسات متاحة للصف ده حاليًا</p>
 
-    <div class="sec-courses-grid" id="coursesGrid"></div>
+    <div class="courses-grid" id="coursesGrid"></div>
 
     <div class="sec-logout-wrap">
       <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
@@ -129,6 +99,7 @@
 // إعداد الصفحة: كل صفحة sec لازم تغيّر السطر ده بس
 // =========================================================
 const PAGE_GRADE = "1";
+const PAGE_LOCATION = "sec1";
 const PAGE_URL_BY_GRADE = { "1": "sec1.html", "2": "sec2.html", "3": "sec3.html" };
 
 const accessGuard = document.getElementById('accessGuard');
@@ -146,6 +117,7 @@ function showGuard(title, text, showLoginBtn){
 }
 
 function showKickedOverlay(message){
+  if(document.querySelector('.session-kicked-overlay')) return;
   const overlay = document.createElement('div');
   overlay.className = 'session-kicked-overlay';
   overlay.innerHTML = `
@@ -227,32 +199,43 @@ const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       return;
     }
 
-    // التأكد إن الجلسة الحالية عندنا هي فعلاً الجلسة النشطة
-    const mySessionId = localStorage.getItem('alzilal-session-id');
+    // =========================================================
+    // نظام الجلسة المبسّط:
+    // مصدر الحقيقة الوحيد هو مستند الطالب في القاعدة (activeSessionId).
+    // لو معانا session id محفوظ محليًا ومختلف عن اللي في القاعدة،
+    // معناها فيه جهاز تاني سجل دخول بعدنا -> نطلع الطالب برسالة واضحة.
+    // لو معاناش session id محلي خالص (أول مرة، أو localStorage اتمسح)
+    // بس التوكن بتاعنا صحيح وموافَق عليه، نعتمد على الجلسة الموجودة
+    // في القاعدة كأساس بدل ما نرفض الطالب من حسابه بالغلط.
+    // =========================================================
+    let mySessionId = localStorage.getItem('alzilal-session-id');
+
     if(!mySessionId){
-      // مفيش جلسة محفوظة (مثلاً دخل من رابط مباشر من غير ما يعدي بصفحة اللوجين)
-      // نعتبرها جلسة صالحة ونسجلها كجلسة نشطة لو مفيش جلسة نشطة أصلاً
-      if(!student.activeSessionId){
+      if(student.activeSessionId){
+        mySessionId = student.activeSessionId;
+        localStorage.setItem('alzilal-session-id', mySessionId);
+      }else{
         const newId = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
         await db.collection('students').doc(phone).update({ activeSessionId: newId });
+        mySessionId = newId;
         localStorage.setItem('alzilal-session-id', newId);
-      }else{
-        showKickedOverlay('في جلسة نشطة من جهاز تاني، سجّل دخولك من هنا لو ده حسابك.');
-        return;
       }
     }else if(student.activeSessionId && student.activeSessionId !== mySessionId){
-      // حد تاني اتقبل بدل الجلسة دي
-      showKickedOverlay('تم تسجيل الدخول لحسابك من جهاز تاني.');
+      // حد سجل دخول من جهاز تاني وبقى هو الجلسة النشطة
+      localStorage.removeItem('alzilal-session-id');
+      localStorage.removeItem('alzilal-current-student');
+      auth.signOut().then(() => showKickedOverlay('تم تسجيل خروجك بسبب دخول شخص آخر لحسابك.'));
       return;
     }
 
     currentStudent = student;
     currentStudentId = phone;
+    localStorage.setItem('alzilal-current-student', phone);
     document.getElementById('studentNameChip').textContent = student.studentName || 'الطالب';
     accessGuard.style.display = 'none';
     pageContent.style.display = 'block';
     loadCourses();
-    watchSessionRequests(phone);
+    watchSession(phone);
 
   }catch(err){
     console.error(err);
@@ -261,58 +244,19 @@ const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
 });
 
 // =========================================================
-// مراقبة حية لمستند الطالب: عشان نكتشف طلبات جلسة جديدة
-// (نظهر نافذة "هل ده انت؟")، وعشان نكتشف لو الجلسة الحالية
-// بقت مش النشطة (حد تاني اتقبل من مكان تاني).
+// مراقبة حية لمستند الطالب: لو حد سجل دخول من جهاز تاني أثناء
+// ما إحنا فاتحين الصفحة، نطلعه فورًا برسالة واضحة.
 // =========================================================
-function watchSessionRequests(phone){
-  const modal = document.getElementById('sessionRequestModal');
-  const approveBtn = document.getElementById('sessionApproveBtn');
-  const rejectBtn = document.getElementById('sessionRejectBtn');
-  let handledRequestId = null;
-
+function watchSession(phone){
   studentDocUnsubscribe = db.collection('students').doc(phone).onSnapshot((snap) => {
     if(!snap.exists) return;
     const d = snap.data();
-
     const mySessionId = localStorage.getItem('alzilal-session-id');
     if(mySessionId && d.activeSessionId && d.activeSessionId !== mySessionId){
-      // حد تاني اتقبل بدل الجلسة دي وإحنا لسه فاتحين الصفحة
       if(studentDocUnsubscribe) studentDocUnsubscribe();
-      auth.signOut().then(() => showKickedOverlay('تم تسجيل الدخول لحسابك من جهاز تاني.'));
-      return;
-    }
-
-    const req = d.sessionRequest;
-    if(req && req.status === 'pending' && req.requestId !== handledRequestId){
-      modal.style.display = 'flex';
-
-      approveBtn.onclick = async () => {
-        modal.style.display = 'none';
-        handledRequestId = req.requestId;
-        try{
-          await db.collection('students').doc(phone).update({
-            activeSessionId: req.newSessionId,
-            sessionRequest: { requestId: req.requestId, status: 'approved', requestedAt: req.requestedAt, newSessionId: req.newSessionId }
-          });
-        }catch(e){ console.error(e); }
-        if(studentDocUnsubscribe) studentDocUnsubscribe();
-        auth.signOut().then(() => {
-          showKickedOverlay('تم تسجيل خروجك بنجاح بعد الموافقة على الجهاز التاني.');
-        });
-      };
-
-      rejectBtn.onclick = async () => {
-        modal.style.display = 'none';
-        handledRequestId = req.requestId;
-        try{
-          await db.collection('students').doc(phone).update({
-            sessionRequest: { requestId: req.requestId, status: 'rejected', requestedAt: req.requestedAt, newSessionId: req.newSessionId }
-          });
-        }catch(e){ console.error(e); }
-      };
-    }else if(!req || req.status !== 'pending'){
-      modal.style.display = 'none';
+      localStorage.removeItem('alzilal-session-id');
+      localStorage.removeItem('alzilal-current-student');
+      auth.signOut().then(() => showKickedOverlay('تم تسجيل خروجك بسبب دخول شخص آخر لحسابك.'));
     }
   });
 }
@@ -338,6 +282,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 
 // =========================================================
 // تحميل الكورسات + حالة اشتراك الطالب في كل كورس
+// (نفس شكل وحجم كروت الكورسات في الصفحة الرئيسية بالظبط)
 // =========================================================
 async function loadCourses(){
   const loadingMsg = document.getElementById('loadingMsg');
@@ -357,7 +302,7 @@ async function loadCourses(){
       .map(doc => ({ id: doc.id, ...doc.data() }))
       .filter(c => {
         const locs = Array.isArray(c.locations) ? c.locations : (c.location ? [c.location] : []);
-        return locs.includes('sec1');
+        return locs.includes(PAGE_LOCATION);
       });
 
     const ordersSnap = await db.collection('orders')
@@ -415,15 +360,19 @@ function renderCourseCard(course, order){
       </div>`;
   }
 
+  // نفس بنية وكلاسات كارت الكورس في الصفحة الرئيسية (course-card) عشان
+  // يبقى نفس الحجم والشكل بالظبط، مع الحفاظ على حالة الاشتراك تحت السعر.
   return `
-    <div class="sec-course-card">
-      ${course.image ? `<img src="${escapeHtml(course.image)}" alt="" class="sec-course-img" onerror="this.style.display='none'">` : ''}
-      <h3>${escapeHtml(course.title || '')}</h3>
-      <div class="sec-course-price">
-        <span class="amount">${escapeHtml(String(course.price ?? ''))}</span>
-        <span class="currency">${escapeHtml(course.currency || 'جنيه')}</span>
+    <div class="course-card">
+      ${course.image ? `<img src="${escapeHtml(course.image)}" alt="${escapeHtml(course.title || '')}" class="course-card-img" onerror="this.style.display='none'">` : ''}
+      <div class="course-card-body">
+        <h3>${escapeHtml(course.title || '')}</h3>
+        <div class="course-price">
+          <span class="amount">${escapeHtml(String(course.price ?? ''))}</span>
+          <span class="currency">${escapeHtml(course.currency || 'جنيه')}</span>
+        </div>
+        ${statusHtml}
       </div>
-      ${statusHtml}
     </div>
   `;
 }
