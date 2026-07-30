@@ -16,6 +16,31 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+  .session-modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.55);
+    display:flex; align-items:center; justify-content:center;
+    z-index:9999; padding:20px;
+  }
+  .session-modal{
+    background:var(--bg-card, #fff); border-radius:16px; padding:28px 24px;
+    max-width:380px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.3);
+  }
+  .session-modal h2{ margin:0 0 10px; font-size:19px; }
+  .session-modal p{ margin:0 0 20px; font-size:14px; opacity:.8; }
+  .session-modal-actions{ display:flex; gap:10px; justify-content:center; }
+  .session-modal-actions button{
+    flex:1; padding:10px 16px; border-radius:10px; border:none;
+    font-weight:700; cursor:pointer; font-family:inherit; font-size:15px;
+  }
+  .session-btn-yes{ background:var(--maroon,#7a1f2b); color:#fff; }
+  .session-btn-no{ background:#eee; color:#222; }
+  .session-kicked-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.75);
+    display:flex; align-items:center; justify-content:center;
+    z-index:9999; padding:20px; text-align:center; color:#fff;
+  }
+</style>
 </head>
 <body>
 
@@ -26,6 +51,18 @@
   <h1 id="guardTitle">بنتحقق من حسابك...</h1>
   <p id="guardText">استنى لحظة من فضلك</p>
   <a href="login.html" class="btn btn-solid" id="guardBtn" style="display:none">تسجيل الدخول</a>
+</div>
+
+<!-- ============ نافذة "هل ده انت؟" ============ -->
+<div class="session-modal-overlay" id="sessionRequestModal" style="display:none">
+  <div class="session-modal">
+    <h2>في حد عايز يستخدم حسابك</h2>
+    <p>حد حاول يسجل دخول بحسابك من جهاز تاني. هل ده انت؟</p>
+    <div class="session-modal-actions">
+      <button class="session-btn-yes" id="sessionApproveBtn">أه، ده انا</button>
+      <button class="session-btn-no" id="sessionRejectBtn">لا</button>
+    </div>
+  </div>
 </div>
 
 <!-- ============ الصفحة الفعلية ============ -->
@@ -105,17 +142,21 @@ function showGuard(title, text, showLoginBtn){
   guardBtn.style.display = showLoginBtn ? 'inline-block' : 'none';
 }
 
+function showKickedOverlay(message){
+  const overlay = document.createElement('div');
+  overlay.className = 'session-kicked-overlay';
+  overlay.innerHTML = `
+    <div>
+      <h2 style="margin-bottom:14px">${message}</h2>
+      <a href="login.html" class="btn btn-solid">تسجيل الدخول</a>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
 let currentStudent = null;
 let currentStudentId = null;
+let studentDocUnsubscribe = null;
 
-// =========================================================
-// فحص الدخول: بنستنى Firebase يحدد حالة اليوزر الحقيقية.
-// مهم جدًا: في تاب جديد أو أول لحظة فتح للصفحة، Firebase محتاج وقت
-// عشان يقرا الجلسة المخزنة (IndexedDB) قبل ما يرجع اليوزر الحقيقي،
-// وممكن يرجع "null" مؤقتًا في الاستدعاء الأول قبل ما يوصله اليوزر
-// الفعلي. عشان كده مبنقفلش الاستماع أول ما ناخد أي نتيجة؛ بنستنى
-// أول نتيجة "مستقرة" (يوزر فعلي، أو استمرار null بعد مهلة أمان بسيطة).
-// =========================================================
 let settled = false;
 let sawNullOnce = false;
 
@@ -131,14 +172,11 @@ const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
   if(settled) return;
 
   if(!user){
-    // ممكن ده يكون null مؤقت (تاب جديد لسه بيقرا الجلسة). منعرضش شاشة
-    // الخطأ فورًا؛ بننتظر نتيجة تانية أو تنتهي مهلة الأمان فوق.
-    if(sawNullOnce) return; // خدنا null قبل كده، نستنى الـ timer بس
+    if(sawNullOnce) return;
     sawNullOnce = true;
     return;
   }
 
-  // وصلنا ليوزر حقيقي — دي النتيجة المستقرة، نوقف كل الانتظار
   settled = true;
   clearTimeout(graceTimer);
   unsubscribeAuth();
@@ -175,12 +213,32 @@ const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       return;
     }
 
+    // التأكد إن الجلسة الحالية عندنا هي فعلاً الجلسة النشطة
+    const mySessionId = localStorage.getItem('alzilal-session-id');
+    if(!mySessionId){
+      // مفيش جلسة محفوظة (مثلاً دخل من رابط مباشر من غير ما يعدي بصفحة اللوجين)
+      // نعتبرها جلسة صالحة ونسجلها كجلسة نشطة لو مفيش جلسة نشطة أصلاً
+      if(!student.activeSessionId){
+        const newId = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
+        await db.collection('students').doc(phone).update({ activeSessionId: newId });
+        localStorage.setItem('alzilal-session-id', newId);
+      }else{
+        showKickedOverlay('في جلسة نشطة من جهاز تاني، سجّل دخولك من هنا لو ده حسابك.');
+        return;
+      }
+    }else if(student.activeSessionId && student.activeSessionId !== mySessionId){
+      // حد تاني اتقبل بدل الجلسة دي
+      showKickedOverlay('تم تسجيل الدخول لحسابك من جهاز تاني.');
+      return;
+    }
+
     currentStudent = student;
     currentStudentId = phone;
     document.getElementById('studentNameChip').textContent = student.studentName || 'الطالب';
     accessGuard.style.display = 'none';
     pageContent.style.display = 'block';
     loadCourses();
+    watchSessionRequests(phone);
 
   }catch(err){
     console.error(err);
@@ -188,8 +246,78 @@ const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
   }
 });
 
-document.getElementById('logoutBtn').addEventListener('click', () => {
+// =========================================================
+// مراقبة حية لمستند الطالب: عشان نكتشف طلبات جلسة جديدة
+// (نظهر نافذة "هل ده انت؟")، وعشان نكتشف لو الجلسة الحالية
+// بقت مش النشطة (حد تاني اتقبل من مكان تاني).
+// =========================================================
+function watchSessionRequests(phone){
+  const modal = document.getElementById('sessionRequestModal');
+  const approveBtn = document.getElementById('sessionApproveBtn');
+  const rejectBtn = document.getElementById('sessionRejectBtn');
+  let handledRequestId = null;
+
+  studentDocUnsubscribe = db.collection('students').doc(phone).onSnapshot((snap) => {
+    if(!snap.exists) return;
+    const d = snap.data();
+
+    const mySessionId = localStorage.getItem('alzilal-session-id');
+    if(mySessionId && d.activeSessionId && d.activeSessionId !== mySessionId){
+      // حد تاني اتقبل بدل الجلسة دي وإحنا لسه فاتحين الصفحة
+      if(studentDocUnsubscribe) studentDocUnsubscribe();
+      auth.signOut().then(() => showKickedOverlay('تم تسجيل الدخول لحسابك من جهاز تاني.'));
+      return;
+    }
+
+    const req = d.sessionRequest;
+    if(req && req.status === 'pending' && req.requestId !== handledRequestId){
+      modal.style.display = 'flex';
+
+      approveBtn.onclick = async () => {
+        modal.style.display = 'none';
+        handledRequestId = req.requestId;
+        try{
+          await db.collection('students').doc(phone).update({
+            activeSessionId: req.newSessionId,
+            sessionRequest: { requestId: req.requestId, status: 'approved', requestedAt: req.requestedAt, newSessionId: req.newSessionId }
+          });
+        }catch(e){ console.error(e); }
+        if(studentDocUnsubscribe) studentDocUnsubscribe();
+        auth.signOut().then(() => {
+          showKickedOverlay('تم تسجيل خروجك بنجاح بعد الموافقة على الجهاز التاني.');
+        });
+      };
+
+      rejectBtn.onclick = async () => {
+        modal.style.display = 'none';
+        handledRequestId = req.requestId;
+        try{
+          await db.collection('students').doc(phone).update({
+            sessionRequest: { requestId: req.requestId, status: 'rejected', requestedAt: req.requestedAt, newSessionId: req.newSessionId }
+          });
+        }catch(e){ console.error(e); }
+      };
+    }else if(!req || req.status !== 'pending'){
+      modal.style.display = 'none';
+    }
+  });
+}
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  if(studentDocUnsubscribe) studentDocUnsubscribe();
+  const phone = currentStudentId;
+  const mySessionId = localStorage.getItem('alzilal-session-id');
+  try{
+    if(phone && mySessionId){
+      const ref = db.collection('students').doc(phone);
+      const snap = await ref.get();
+      if(snap.exists && snap.data().activeSessionId === mySessionId){
+        await ref.update({ activeSessionId: firebase.firestore.FieldValue.delete() });
+      }
+    }
+  }catch(e){ console.error(e); }
   localStorage.removeItem('alzilal-current-student');
+  localStorage.removeItem('alzilal-session-id');
   auth.signOut().then(() => window.location.href = 'login.html');
 });
 
