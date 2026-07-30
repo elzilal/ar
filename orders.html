@@ -77,6 +77,7 @@
         </button>
         <a href="elzilal-server.html" class="btn btn-ghost">سيرفر الإدارة</a>
         <a href="admin.html" class="btn btn-ghost">لوحة الطلاب</a>
+        <a href="upload-videos.html" class="btn btn-ghost">رفع الفيديوهات</a>
         <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
       </div>
     </div>
@@ -128,6 +129,18 @@
     <div class="confirm-actions">
       <button class="btn btn-ghost" id="cancelRejectBtn">تراجع</button>
       <button class="btn btn-solid confirm-danger" id="confirmRejectBtn">تأكيد الرفض</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ نافذة تأكيد الحذف النهائي ============ -->
+<div class="confirm-modal" id="deleteOrderModal">
+  <div class="confirm-modal-card">
+    <h3>متأكد إنك عايز تحذف الطلب ده نهائيًا؟</h3>
+    <p>هيتم حذف طلب الاشتراك بالكامل من قاعدة البيانات، والعملية دي لا يمكن التراجع عنها</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="cancelDeleteOrderBtn">إلغاء</button>
+      <button class="btn btn-solid confirm-danger" id="confirmDeleteOrderBtn">حذف نهائي</button>
     </div>
   </div>
 </div>
@@ -297,6 +310,7 @@ function renderOrders(){
       ${o.status === 'approved' || o.status === 'rejected' ? `
         <div class="student-actions">
           <button class="btn btn-ghost" data-action="reset" data-id="${o.id}">إرجاع لقيد المراجعة</button>
+          ${o.status === 'rejected' ? `<button class="btn btn-ghost delete-btn" data-action="delete" data-id="${o.id}">حذف نهائي</button>` : ''}
         </div>
       ` : ''}
     </div>
@@ -310,6 +324,9 @@ function renderOrders(){
   });
   list.querySelectorAll('[data-action="reset"]').forEach(btn => {
     btn.addEventListener('click', () => setOrderStatus(btn.dataset.id, 'pending'));
+  });
+  list.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', () => openDeleteOrderModal(btn.dataset.id));
   });
 }
 
@@ -353,6 +370,45 @@ document.getElementById('confirmRejectBtn').addEventListener('click', async () =
   rejectModal.classList.remove('active');
   pendingRejectId = null;
 });
+
+// ============ نافذة تأكيد الحذف النهائي ============
+const deleteOrderModal = document.getElementById('deleteOrderModal');
+let pendingDeleteOrderId = null;
+
+function openDeleteOrderModal(orderId){
+  pendingDeleteOrderId = orderId;
+  deleteOrderModal.classList.add('active');
+}
+document.getElementById('cancelDeleteOrderBtn').addEventListener('click', () => {
+  deleteOrderModal.classList.remove('active');
+  pendingDeleteOrderId = null;
+});
+deleteOrderModal.addEventListener('click', (e) => {
+  if(e.target === deleteOrderModal) deleteOrderModal.classList.remove('active');
+});
+document.getElementById('confirmDeleteOrderBtn').addEventListener('click', async () => {
+  if(pendingDeleteOrderId){
+    await deleteOrder(pendingDeleteOrderId);
+  }
+  deleteOrderModal.classList.remove('active');
+  pendingDeleteOrderId = null;
+});
+
+async function deleteOrder(orderId, isRetry){
+  try{
+    await db.collection('orders').doc(orderId).delete();
+    loadOrders();
+  }catch(err){
+    if(!isRetry && err.code === 'permission-denied' && auth.currentUser){
+      try{
+        await auth.currentUser.getIdToken(true);
+        return deleteOrder(orderId, true);
+      }catch(e){ /* تجاهل */ }
+    }
+    console.error(err);
+    alert('حصل خطأ أثناء حذف الطلب: ' + err.message);
+  }
+}
 
 // ============ الفلاتر والتحديث ============
 document.querySelectorAll('.filter-btn').forEach(btn => {
