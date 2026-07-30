@@ -83,7 +83,7 @@
     <div id="stateCancelled" style="display:none">
       <div class="wait-icon">✖️</div>
       <h1>تم إلغاء الطلب</h1>
-      <a href="login.html" class="btn btn-solid" style="margin-top:20px">رجوع لتسجيل الدخول</a>
+      <p class="auth-sub">جاري تحويلك للصفحة الرئيسية...</p>
     </div>
 
   </div>
@@ -221,6 +221,12 @@ document.getElementById('cancelBtn').addEventListener('click', async () => {
   if(unsubscribe) unsubscribe();
   clearPendingStorage();
   showState('cancelled');
+  // نمنع صفحة index من عمل تحقق دخول تاني في أول تحميل بعد الإلغاء
+  // (الطالب لسه معندوش جلسة معتمدة، فمفيش داعي نستناه أو نحوله تاني)
+  sessionStorage.setItem('alzilal-skip-splash-check', '1');
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 1200);
 });
 
 init();
