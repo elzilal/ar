@@ -155,10 +155,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     // نظام الجلسة الواحدة المبسّط: تسجيل الدخول الجديد يفتح جلسة
     // جديدة فورًا ويحل محل أي جلسة قديمة، من غير انتظار موافقة حد.
     const newSessionId = generateSessionId();
-    await studentRef.update({
-      activeSessionId: newSessionId,
-      sessionRequest: firebase.firestore.FieldValue.delete()
-    });
+    await studentRef.update({ activeSessionId: newSessionId });
     localStorage.setItem('alzilal-session-id', newSessionId);
     localStorage.setItem('alzilal-current-student', data.studentPhone);
 
@@ -168,10 +165,17 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     window.location.href = gradeToPage[student.grade] || 'index.html';
 
   }catch(err){
-    console.error(err);
-    let msg = 'رقم الطالب أو كلمة المرور غير صحيحة.';
-    if(err.code === 'auth/too-many-requests') msg = 'محاولات كتير غلط، حاول تاني بعد شوية.';
-    if(err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = 'رقم الطالب أو كلمة المرور غير صحيحة.';
+    console.error('LOGIN ERROR FULL DETAILS:', err);
+    let msg;
+    if(err.code === 'auth/too-many-requests'){
+      msg = 'محاولات كتير غلط، حاول تاني بعد شوية.';
+    }else if(err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential' || err.code === 'auth/invalid-login-credentials'){
+      msg = 'رقم الطالب أو كلمة المرور غير صحيحة.';
+    }else if(err.code === 'permission-denied'){
+      msg = 'حصلت مشكلة صلاحيات أثناء فتح الجلسة. كود الخطأ: ' + err.code + ' — ' + err.message;
+    }else{
+      msg = 'حصل خطأ غير متوقع: ' + (err.code || '') + ' — ' + err.message;
+    }
     alert(msg);
     submitBtn.disabled = false;
     submitBtn.textContent = 'تسجيل الدخول';
