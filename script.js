@@ -74,10 +74,21 @@
   if(yearEl) yearEl.textContent = new Date().getFullYear();
 })();
 
-/* ---------------- تحويل الطالب المسجّل دخول تلقائيًا من الصفحة الرئيسية لصفحته ---------------- */
+/* ---------------- تحويل الطالب المسجّل دخول تلقائيًا من الصفحة الرئيسية لصفحته ----------------
+   ملحوظة مهمة: الكود ده لازم يشتغل بس في index.html.
+   الاعتماد القديم على وجود #coursesGrid كان غلط، لأن صفحات sec1/2/3.html
+   عندها عنصر بنفس المعرّف (#coursesGrid) لغرض تاني تمامًا (شبكة كورسات الطالب).
+   النتيجة كانت: listener تاني مستقل لـ onAuthStateChanged بيشتغل جنب اللي
+   جوه sec*.html نفسه، وبيعمل window.location.replace حتى لو الطالب واقف
+   صح في صفحته أصلاً — وده اللي كان بيسبب الريفرش المتكرر ودورة "تسجيل دخول".
+   الفحص الصحيح: نتأكد إننا في index.html فعليًا عن طريق مسار الصفحة،
+   مش بس وجود عنصر معين.
+   ========================================================= */
 (function redirectApprovedStudentFromHome(){
-  // نشغّل ده بس في الصفحة الرئيسية (اللي فيها قسم الكورسات coursesGrid)
-  // عشان منأثرش على صفحات تانية بتحمّل نفس الملف زي لوحة الإدارة
+  const currentPage = window.location.pathname.split('/').pop();
+  const isHomePage = currentPage === '' || currentPage === 'index.html';
+  if(!isHomePage) return;
+
   const coursesGrid = document.getElementById('coursesGrid');
   if(!coursesGrid) return;
   if(typeof auth === 'undefined' || typeof db === 'undefined') return;
@@ -90,7 +101,7 @@
       if(snap.exists && snap.data().status === 'approved'){
         const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
         const target = gradeToPage[snap.data().grade];
-        if(target) window.location.replace(target);
+        if(target && target !== currentPage) window.location.replace(target);
       }
     }catch(e){ console.error(e); }
   });
@@ -105,6 +116,11 @@
   // نحمّل الداتا بس في الصفحات اللي محتاجاها فعليًا
   if(!coursesGrid && !teacherBio && !document.getElementById('whyUsGrid')) return;
 
+  // نفس الحماية: متحملش كورسات "الصفحة الرئيسية" (location == 'index')
+  // على صفحات sec*.html حتى لو فيها عنصر #coursesGrid.
+  const currentPage = window.location.pathname.split('/').pop();
+  const isHomePage = currentPage === '' || currentPage === 'index.html';
+
   fetch('data.json')
     .then(res => res.json())
     .then(data => {
@@ -118,7 +134,7 @@
   const gradeLabels = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
 
   function loadCoursesFromFirestore(){
-    if(!coursesGrid) return;
+    if(!coursesGrid || !isHomePage) return;
     if(typeof db === 'undefined'){
       coursesGrid.innerHTML = '<p class="loading-msg">تعذر تحميل الكورسات حاليًا</p>';
       return;
