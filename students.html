@@ -103,6 +103,24 @@ async function loadApprovedStudents(){
       return tb - ta;
     });
 
+    // نحمّل طلبات الاشتراك المفعّلة (approved) عشان نعرف كل طالب مشترك في أنهي كورسات
+    // بنربط الطلب بالطالب عن طريق رقم هاتف الطالب (studentPhone)
+    let ordersByPhone = {};
+    try{
+      const ordersSnap = await db.collection('orders')
+        .where('status', '==', 'approved')
+        .get();
+      ordersSnap.docs.forEach(doc => {
+        const o = doc.data();
+        const phone = o.studentPhone;
+        if(!phone) return;
+        if(!ordersByPhone[phone]) ordersByPhone[phone] = [];
+        if(o.courseTitle) ordersByPhone[phone].push(o.courseTitle);
+      });
+    }catch(err){
+      console.error('حصل خطأ في تحميل الكورسات المشترك فيها الطلاب:', err);
+    }
+
     document.getElementById('loadingMsg').style.display = 'none';
     const grid = document.getElementById('studentsGrid');
     const countBadge = document.getElementById('studentsCount');
@@ -115,13 +133,20 @@ async function loadApprovedStudents(){
 
     countBadge.textContent = `${data.length} طالب منضم حاليًا`;
 
-    grid.innerHTML = data.map(s => `
+    grid.innerHTML = data.map(s => {
+      const courses = ordersByPhone[s.studentPhone] || [];
+      const coursesHtml = courses.length
+        ? `<div class="student-courses">${courses.map(c => `<span class="student-course-tag">${escapeHtml(c)}</span>`).join('')}</div>`
+        : `<div class="student-courses"><span class="student-course-tag student-course-tag-empty">مفيش كورس مفعّل حاليًا</span></div>`;
+      return `
       <div class="student-mini-card">
         <div class="student-avatar">${(s.studentName || '?').trim().charAt(0)}</div>
         <h3>${escapeHtml(s.studentName || 'طالب')}</h3>
         <span class="student-grade-tag">${gradeNames[s.grade] || ''}</span>
+        ${coursesHtml}
       </div>
-    `).join('');
+    `;
+    }).join('');
 
   }catch(err){
     console.error(err);
