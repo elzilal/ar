@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رفع الفيديوهات | الظلال</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="upload-videos.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<!-- ============ شاشة الدخول بالباسورد ============ -->
+<div class="admin-gate" id="adminGate">
+  <div class="admin-gate-card">
+    <span class="logo-icon" aria-hidden="true">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+        <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+        <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+      </svg>
+    </span>
+    <h1>رفع الفيديوهات</h1>
+    <p>الصفحة دي خاصة بالإدارة فقط</p>
+    <form id="gateForm">
+      <input type="email" id="adminEmailInput" placeholder="البريد الإلكتروني" required autocomplete="off">
+      <input type="password" id="adminPasswordInput" placeholder="اكتب كلمة مرور الإدارة" required autocomplete="off">
+      <button type="submit" class="btn btn-solid">دخول</button>
+    </form>
+    <p class="gate-error" id="gateError">البريد أو كلمة المرور غير صحيحة</p>
+  </div>
+</div>
+
+<!-- ============ اللوحة نفسها ============ -->
+<div class="admin-panel" id="adminPanel">
+
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <a href="upload-videos.html" class="logo">
+        <span class="logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+            <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+          </svg>
+        </span>
+        <span class="logo-text">رفع الفيديوهات</span>
+      </a>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="تبديل الوضع الليلي والنهاري" aria-pressed="false">
+          <span class="theme-toggle-track">
+            <span class="theme-toggle-thumb">
+              <svg class="icon-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M12 1.5V4"/><path d="M12 20v2.5"/>
+                  <path d="M4.2 4.2L6 6"/><path d="M18 18l1.8 1.8"/>
+                  <path d="M1.5 12H4"/><path d="M20 12h2.5"/>
+                  <path d="M4.2 19.8L6 18"/><path d="M18 6l1.8-1.8"/>
+                </g>
+              </svg>
+            </span>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" fill="currentColor"/>
+            </svg>
+          </span>
+        </button>
+        <a href="elzilal-server.html" class="btn btn-ghost">سيرفر الإدارة</a>
+        <a href="admin.html" class="btn btn-ghost">لوحة الطلاب</a>
+        <a href="courses.html" class="btn btn-ghost">إدارة الكورسات</a>
+        <a href="orders.html" class="btn btn-ghost">طلبات الاشتراك</a>
+        <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <div class="courses-toolbar">
+      <button class="btn btn-solid" id="addVideoBtn">+ إضافة فيديو جديد</button>
+    </div>
+
+    <!-- ============ فلاتر الصف الدراسي ============ -->
+    <div class="filters-row">
+      <button class="filter-btn active" data-filter="all">كل الدروس</button>
+      <button class="filter-btn" data-filter="1">أولى ثانوي</button>
+      <button class="filter-btn" data-filter="2">تانية ثانوي</button>
+      <button class="filter-btn" data-filter="3">تالتة ثانوي</button>
+      <button class="btn btn-ghost refresh-btn" id="refreshBtn">↻ تحديث</button>
+    </div>
+
+    <p class="loading-msg" id="loadingMsg">جاري تحميل الدروس...</p>
+    <p class="empty-msg" id="emptyMsg" style="display:none">مفيش دروس مرفوعة حاليًا</p>
+
+    <div class="students-list" id="videosList"></div>
+
+  </main>
+</div>
+
+<!-- ============ نافذة إضافة / تعديل فيديو ============ -->
+<div class="course-modal" id="videoModal">
+  <div class="course-modal-card">
+    <h3 id="videoModalTitle">إضافة فيديو جديد</h3>
+    <form class="course-form" id="videoForm">
+      <input type="hidden" id="videoId" value="">
+
+      <label>
+        <span>اسم الدرس</span>
+        <input type="text" id="videoTitle" placeholder="مثال: الدرس الأول - النحو" required>
+      </label>
+
+      <label>
+        <span>تفاصيل الدرس</span>
+        <textarea id="videoDetails" rows="3" placeholder="وصف مختصر لمحتوى الدرس..." required></textarea>
+      </label>
+
+      <label>
+        <span>لينك فيديو اليوتيوب</span>
+        <input type="url" id="videoLink" placeholder="https://www.youtube.com/watch?v=..." required>
+      </label>
+
+      <label>
+        <span>الصف الدراسي</span>
+        <select id="videoGrade" required>
+          <option value="1">الصف الأول الثانوي</option>
+          <option value="2">الصف الثاني الثانوي</option>
+          <option value="3">الصف الثالث الثانوي</option>
+        </select>
+      </label>
+
+      <label>
+        <span>الكورس المرتبط بالدرس</span>
+        <select id="videoCourse" required>
+          <option value="">جاري تحميل الكورسات...</option>
+        </select>
+      </label>
+
+      <div class="course-form-actions">
+        <button type="button" class="btn btn-ghost" id="cancelVideoBtn">إلغاء</button>
+        <button type="submit" class="btn btn-solid" id="saveVideoBtn">حفظ الدرس</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ نافذة تأكيد الحذف ============ -->
+<div class="confirm-modal" id="deleteVideoModal">
+  <div class="confirm-modal-card">
+    <h3>متأكد إنك عايز تحذف الدرس ده؟</h3>
+    <p>الإجراء ده نهائي ومش هينفع نرجع فيه</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="cancelDeleteVideoBtn">إلغاء</button>
+      <button class="btn btn-solid confirm-danger" id="confirmDeleteVideoBtn">تأكيد الحذف</button>
+    </div>
+  </div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script src="script.js"></script>
+<script>
+// =========================================================
+// تسجيل دخول الأدمن
+// =========================================================
+const adminGate = document.getElementById('adminGate');
+const adminPanel = document.getElementById('adminPanel');
+const gateForm = document.getElementById('gateForm');
+const gateError = document.getElementById('gateError');
+
+function unlockAdmin(){
+  adminGate.style.display = 'none';
+  adminPanel.style.display = 'block';
+  loadCoursesForSelect();
+  loadVideos();
+}
+function lockAdmin(){
+  adminPanel.style.display = 'none';
+  adminGate.style.display = 'flex';
+}
+
+auth.onAuthStateChanged(async (user) => {
+  if(user && user.email && !user.email.endsWith('@elzilal-student.app')){
+    try{ await user.getIdToken(true); }catch(e){ console.error(e); }
+    unlockAdmin();
+  }else{
+    if(user) auth.signOut();
+    lockAdmin();
+  }
+});
+
+gateForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('adminEmailInput').value;
+  const password = document.getElementById('adminPasswordInput').value;
+  const submitBtn = gateForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'جاري الدخول...';
+  gateError.classList.remove('show');
+  try{
+    await auth.signInWithEmailAndPassword(email, password);
+  }catch(err){
+    console.error(err);
+    gateError.textContent = 'البريد أو كلمة المرور غير صحيحة';
+    gateError.classList.add('show');
+  }finally{
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'دخول';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+
+// =========================================================
+// تحميل قائمة الكورسات (لاستخدامها في نافذة إضافة/تعديل الفيديو)
+// =========================================================
+let allCourses = [];
+
+async function loadCoursesForSelect(){
+  const select = document.getElementById('videoCourse');
+  try{
+    const snap = await db.collection('courses').get();
+    allCourses = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if(allCourses.length === 0){
+      select.innerHTML = '<option value="">لا توجد كورسات مضافة بعد</option>';
+      return;
+    }
+    select.innerHTML = allCourses.map(c => `<option value="${c.id}">${escapeHtml(c.title || 'كورس بدون اسم')}</option>`).join('');
+  }catch(err){
+    console.error(err);
+    select.innerHTML = '<option value="">تعذر تحميل الكورسات</option>';
+  }
+}
+
+// =========================================================
+// تحميل وعرض الدروس
+// =========================================================
+let allVideos = [];
+let currentFilter = 'all';
+
+const gradeNames = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
+
+async function loadVideos(){
+  document.getElementById('loadingMsg').style.display = 'block';
+  document.getElementById('emptyMsg').style.display = 'none';
+  document.getElementById('videosList').innerHTML = '';
+
+  try{
+    const snap = await db.collection('videos').get();
+    allVideos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    allVideos.sort((a, b) => {
+      const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return tb - ta;
+    });
+    renderVideos();
+  }catch(err){
+    console.error(err);
+    document.getElementById('loadingMsg').textContent = 'حصل خطأ في تحميل الدروس: ' + err.message;
+  }
+}
+
+function courseTitleFor(courseId){
+  const course = allCourses.find(c => c.id === courseId);
+  return course ? (course.title || 'كورس بدون اسم') : 'كورس محذوف';
+}
+
+function renderVideos(){
+  document.getElementById('loadingMsg').style.display = 'none';
+  const list = document.getElementById('videosList');
+  const emptyMsg = document.getElementById('emptyMsg');
+
+  const filtered = currentFilter === 'all'
+    ? allVideos
+    : allVideos.filter(v => v.grade === currentFilter);
+
+  if(filtered.length === 0){
+    list.innerHTML = '';
+    emptyMsg.style.display = 'block';
+    return;
+  }
+  emptyMsg.style.display = 'none';
+
+  list.innerHTML = filtered.map(v => `
+    <div class="student-card" data-id="${v.id}">
+      <div class="student-card-head">
+        <h3>${escapeHtml(v.title || '')}</h3>
+        <span class="status-badge status-approved">${gradeNames[v.grade] || v.grade || '—'}</span>
+      </div>
+      <div style="margin-bottom:12px;">
+        <span class="order-course-tag">${escapeHtml(courseTitleFor(v.courseId))}</span>
+      </div>
+      <div class="student-info-grid">
+        <div style="grid-column: 1 / -1;">
+          <span class="info-label">تفاصيل الدرس</span>
+          <span class="info-value">${escapeHtml(v.details || '')}</span>
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <span class="info-label">لينك الفيديو</span>
+          <span class="info-value"><a href="${escapeHtml(v.videoUrl || '#')}" target="_blank" rel="noopener">${escapeHtml(v.videoUrl || '')}</a></span>
+        </div>
+      </div>
+      <div class="student-actions">
+        <button class="btn btn-ghost edit-video-btn" data-id="${v.id}">تعديل</button>
+        <button class="btn btn-ghost delete-btn delete-video-btn" data-id="${v.id}">حذف نهائي</button>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.edit-video-btn').forEach(btn => {
+    btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+  });
+  list.querySelectorAll('.delete-video-btn').forEach(btn => {
+    btn.addEventListener('click', () => openDeleteModal(btn.dataset.id));
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderVideos();
+  });
+});
+document.getElementById('refreshBtn').addEventListener('click', loadVideos);
+
+// =========================================================
+// نافذة إضافة / تعديل فيديو
+// =========================================================
+const videoModal = document.getElementById('videoModal');
+const videoForm = document.getElementById('videoForm');
+const videoModalTitle = document.getElementById('videoModalTitle');
+
+function openAddModal(){
+  videoForm.reset();
+  document.getElementById('videoId').value = '';
+  videoModalTitle.textContent = 'إضافة فيديو جديد';
+  videoModal.classList.add('active');
+}
+
+function openEditModal(id){
+  const video = allVideos.find(v => v.id === id);
+  if(!video) return;
+  document.getElementById('videoId').value = id;
+  document.getElementById('videoTitle').value = video.title || '';
+  document.getElementById('videoDetails').value = video.details || '';
+  document.getElementById('videoLink').value = video.videoUrl || '';
+  document.getElementById('videoGrade').value = video.grade || '1';
+  document.getElementById('videoCourse').value = video.courseId || '';
+  videoModalTitle.textContent = 'تعديل الدرس';
+  videoModal.classList.add('active');
+}
+
+document.getElementById('addVideoBtn').addEventListener('click', openAddModal);
+document.getElementById('cancelVideoBtn').addEventListener('click', () => videoModal.classList.remove('active'));
+videoModal.addEventListener('click', (e) => { if(e.target === videoModal) videoModal.classList.remove('active'); });
+
+videoForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const saveBtn = document.getElementById('saveVideoBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'جاري الحفظ...';
+
+  const id = document.getElementById('videoId').value;
+  const courseId = document.getElementById('videoCourse').value;
+  const payload = {
+    title: document.getElementById('videoTitle').value.trim(),
+    details: document.getElementById('videoDetails').value.trim(),
+    videoUrl: document.getElementById('videoLink').value.trim(),
+    grade: document.getElementById('videoGrade').value,
+    courseId: courseId,
+    courseTitle: courseTitleFor(courseId)
+  };
+
+  try{
+    if(id){
+      await db.collection('videos').doc(id).update(payload);
+    }else{
+      payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('videos').add(payload);
+    }
+    videoModal.classList.remove('active');
+    await loadVideos();
+  }catch(err){
+    console.error(err);
+    alert('حصل خطأ أثناء حفظ الدرس: ' + err.message);
+  }finally{
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'حفظ الدرس';
+  }
+});
+
+// =========================================================
+// حذف فيديو
+// =========================================================
+const deleteVideoModal = document.getElementById('deleteVideoModal');
+let pendingDeleteVideoId = null;
+
+function openDeleteModal(id){
+  pendingDeleteVideoId = id;
+  deleteVideoModal.classList.add('active');
+}
+document.getElementById('cancelDeleteVideoBtn').addEventListener('click', () => {
+  deleteVideoModal.classList.remove('active');
+  pendingDeleteVideoId = null;
+});
+deleteVideoModal.addEventListener('click', (e) => { if(e.target === deleteVideoModal) deleteVideoModal.classList.remove('active'); });
+
+document.getElementById('confirmDeleteVideoBtn').addEventListener('click', async () => {
+  if(!pendingDeleteVideoId) return;
+  try{
+    await db.collection('videos').doc(pendingDeleteVideoId).delete();
+    await loadVideos();
+  }catch(err){
+    console.error(err);
+    alert('حصل خطأ أثناء حذف الدرس: ' + err.message);
+  }finally{
+    deleteVideoModal.classList.remove('active');
+    pendingDeleteVideoId = null;
+  }
+});
+</script>
+</body>
+</html>

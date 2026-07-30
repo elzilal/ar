@@ -1,0 +1,20 @@
+/* =========================================================
+   صفحة رفع الفيديوهات (upload-videos.html)
+   تستخدم نفس أنماط admin.css و courses.css + إضافات هنا
+   ========================================================= */
+
+.course-form textarea{
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid color-mix(in srgb, var(--olive) 45%, transparent);
+  background: var(--cream);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: .92rem;
+  resize: vertical;
+}
+.course-form textarea:focus{
+  outline: none;
+  border-color: var(--coral);
+}
