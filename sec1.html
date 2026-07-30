@@ -68,22 +68,69 @@
             </svg>
           </span>
         </button>
-        <span class="student-name-chip" id="studentNameChip">—</span>
+        <div class="student-profile-chip" id="studentProfileChip" title="تعديل صورة البروفايل (قريبًا)">
+          <span class="student-name-chip" id="studentNameChip">—</span>
+          <span class="student-avatar-mini" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+              <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+        </div>
       </div>
     </div>
   </header>
 
+  <!-- ============ بار التابات ============ -->
+  <nav class="sec-tabs" id="secTabs">
+    <button class="sec-tab active" data-tab="available">الكورسات المتاحة</button>
+    <button class="sec-tab" data-tab="enrolled">الكورسات المفعّلة</button>
+    <button class="sec-tab" data-tab="activity">نشاطي</button>
+  </nav>
+
   <main class="sec-page">
-    <div class="section-head">
-      <p class="section-eyebrow">صفحتك التعليمية</p>
-      <h1>كورسات الصف الأول الثانوي</h1>
-      <p>اختار الكورس اللي عايز تشترك فيه وابدأ رحلتك</p>
-    </div>
 
-    <p class="loading-msg" id="loadingMsg">جاري تحميل الكورسات...</p>
-    <p class="empty-msg" id="emptyMsg" style="display:none">لسه مفيش كورسات متاحة للصف ده حاليًا</p>
+    <!-- ============ تاب: الكورسات المتاحة ============ -->
+    <section class="sec-tab-panel active" id="tabAvailable">
+      <div class="section-head">
+        <p class="section-eyebrow">صفحتك التعليمية</p>
+        <h1>كورسات الصف الأول الثانوي</h1>
+        <p>اختار الكورس اللي عايز تشترك فيه وابدأ رحلتك</p>
+      </div>
 
-    <div class="courses-grid" id="coursesGrid"></div>
+      <p class="loading-msg" id="loadingMsg">جاري تحميل الكورسات...</p>
+      <p class="empty-msg" id="emptyMsg" style="display:none">لسه مفيش كورسات متاحة للصف ده حاليًا</p>
+
+      <div class="courses-grid" id="coursesGrid"></div>
+    </section>
+
+    <!-- ============ تاب: الكورسات المفعّلة (فيديوهات) ============ -->
+    <section class="sec-tab-panel" id="tabEnrolled">
+      <div class="section-head">
+        <p class="section-eyebrow">صفحتك التعليمية</p>
+        <h1>الكورسات المفعّلة ليك</h1>
+        <p>شوف دروسك واتفرج على الفيديوهات</p>
+      </div>
+
+      <p class="loading-msg" id="enrolledLoadingMsg" style="display:none">جاري تحميل دروسك...</p>
+      <p class="empty-msg" id="enrolledEmptyMsg" style="display:none">مفيش عندك كورسات مفعّلة حاليًا</p>
+
+      <div id="enrolledCoursesWrap"></div>
+    </section>
+
+    <!-- ============ تاب: نشاطي ============ -->
+    <section class="sec-tab-panel" id="tabActivity">
+      <div class="section-head">
+        <p class="section-eyebrow">صفحتك التعليمية</p>
+        <h1>نشاطي</h1>
+        <p>الفيديوهات اللي اتفرجت عليها وتاريخ مشاهدتها</p>
+      </div>
+
+      <p class="loading-msg" id="activityLoadingMsg" style="display:none">جاري تحميل نشاطك...</p>
+      <p class="empty-msg" id="activityEmptyMsg" style="display:none">لسه مفتحتش أي فيديو</p>
+
+      <div class="activity-list" id="activityList"></div>
+    </section>
 
     <div class="sec-logout-wrap">
       <button class="btn btn-ghost" id="logoutBtn">تسجيل خروج</button>
@@ -399,6 +446,157 @@ function escapeHtml(str){
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// =========================================================
+// بار التابات: الكورسات المتاحة / الكورسات المفعّلة / نشاطي
+// =========================================================
+let enrolledLoaded = false;
+let activityLoaded = false;
+
+document.querySelectorAll('.sec-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.sec-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.sec-tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+
+    const target = tab.dataset.tab;
+    if(target === 'available'){
+      document.getElementById('tabAvailable').classList.add('active');
+    }else if(target === 'enrolled'){
+      document.getElementById('tabEnrolled').classList.add('active');
+      if(!enrolledLoaded){ enrolledLoaded = true; loadEnrolledCourses(); }
+    }else if(target === 'activity'){
+      document.getElementById('tabActivity').classList.add('active');
+      if(!activityLoaded){ activityLoaded = true; loadActivity(); }
+    }
+  });
+});
+
+// =========================================================
+// تاب الكورسات المفعّلة: بيجيب الكورسات approved بتاعة الطالب
+// وبيحمّل فيديوهات كل كورس منهم من مجموعة videos
+// =========================================================
+async function loadEnrolledCourses(){
+  const loadingMsg = document.getElementById('enrolledLoadingMsg');
+  const emptyMsg = document.getElementById('enrolledEmptyMsg');
+  const wrap = document.getElementById('enrolledCoursesWrap');
+
+  loadingMsg.style.display = 'block';
+  emptyMsg.style.display = 'none';
+  wrap.innerHTML = '';
+
+  try{
+    const ordersSnap = await db.collection('orders')
+      .where('uid', '==', auth.currentUser.uid)
+      .where('status', '==', 'approved')
+      .get();
+
+    const approvedOrders = ordersSnap.docs.map(doc => doc.data());
+
+    loadingMsg.style.display = 'none';
+
+    if(approvedOrders.length === 0){
+      emptyMsg.style.display = 'block';
+      return;
+    }
+
+    // نجيب كل فيديوهات الصف ده مرة واحدة، وبعدين نوزعها على الكورسات
+    const videosSnap = await db.collection('videos')
+      .where('grade', '==', PAGE_GRADE)
+      .get();
+    const allVideos = videosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    wrap.innerHTML = approvedOrders.map(order => {
+      const courseVideos = allVideos.filter(v => v.courseId === order.courseId);
+      return renderEnrolledCourseBlock(order, courseVideos);
+    }).join('');
+
+  }catch(err){
+    console.error(err);
+    loadingMsg.style.display = 'none';
+    wrap.innerHTML = `<p class="empty-msg">حصل خطأ في تحميل دروسك: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+function youtubeThumb(url){
+  if(!url) return '';
+  const match = url.match(/(?:youtu\.be\/|v=|\/embed\/|\/shorts\/)([A-Za-z0-9_-]{6,})/);
+  const id = match ? match[1] : null;
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+}
+
+function renderEnrolledCourseBlock(order, videos){
+  const videosHtml = videos.length
+    ? videos.map(v => `
+        <a class="video-thumb-card" href="watch.html?video=${encodeURIComponent(v.id)}">
+          <div class="video-thumb-img-wrap">
+            ${youtubeThumb(v.videoUrl) ? `<img src="${escapeHtml(youtubeThumb(v.videoUrl))}" alt="${escapeHtml(v.title || '')}" loading="lazy">` : ''}
+            <span class="video-thumb-play" aria-hidden="true">▶</span>
+          </div>
+          <div class="video-thumb-body">
+            <h4>${escapeHtml(v.title || '')}</h4>
+            <p>${escapeHtml(v.details || '')}</p>
+          </div>
+        </a>
+      `).join('')
+    : `<p class="empty-msg">لسه مفيش فيديوهات مرفوعة للكورس ده</p>`;
+
+  return `
+    <div class="enrolled-course-block">
+      <h2 class="enrolled-course-title">${escapeHtml(order.courseTitle || '')}</h2>
+      <div class="videos-grid">${videosHtml}</div>
+    </div>
+  `;
+}
+
+// =========================================================
+// تاب نشاطي: قايمة الفيديوهات اللي اتفتحت وتاريخ فتحها
+// =========================================================
+async function loadActivity(){
+  const loadingMsg = document.getElementById('activityLoadingMsg');
+  const emptyMsg = document.getElementById('activityEmptyMsg');
+  const list = document.getElementById('activityList');
+
+  loadingMsg.style.display = 'block';
+  emptyMsg.style.display = 'none';
+  list.innerHTML = '';
+
+  try{
+    const snap = await db.collection('students').doc(currentStudentId)
+      .collection('activity')
+      .orderBy('watchedAt', 'desc')
+      .limit(50)
+      .get();
+
+    loadingMsg.style.display = 'none';
+
+    if(snap.empty){
+      emptyMsg.style.display = 'block';
+      return;
+    }
+
+    list.innerHTML = snap.docs.map(doc => {
+      const a = doc.data();
+      const date = a.watchedAt?.toDate ? a.watchedAt.toDate() : null;
+      const dateStr = date ? date.toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+      return `
+        <div class="activity-item">
+          <span class="activity-icon" aria-hidden="true">▶</span>
+          <div class="activity-info">
+            <h4>${escapeHtml(a.videoTitle || 'فيديو')}</h4>
+            <span class="activity-date">${escapeHtml(dateStr)}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  }catch(err){
+    console.error(err);
+    loadingMsg.style.display = 'none';
+    // لو الاستعلام محتاج index مركب لسه متعمولش، نعرض رسالة واضحة بدل ما نكسر الصفحة
+    list.innerHTML = `<p class="empty-msg">حصل خطأ في تحميل نشاطك: ${escapeHtml(err.message)}</p>`;
+  }
 }
 </script>
 </body>
