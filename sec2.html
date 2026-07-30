@@ -137,11 +137,13 @@ auth.onAuthStateChanged(async (user) => {
     }
 
     // لو الطالب مش في الصف بتاع الصفحة دي، حوّله لصفحته الصح
-    if(student.grade !== PAGE_GRADE){
-      const correctUrl = PAGE_URL_BY_GRADE[student.grade];
-      if(correctUrl){
-        window.location.href = correctUrl;
-      }else{
+    // (بنقارن كـ نص عشان لو الصف اتخزّن كرقم بالغلط من مكان تاني ميحصلش لوب تحويل لا نهائي)
+    if(String(student.grade) !== String(PAGE_GRADE)){
+      const correctUrl = PAGE_URL_BY_GRADE[String(student.grade)];
+      const currentPage = window.location.pathname.split('/').pop();
+      if(correctUrl && correctUrl !== currentPage){
+        window.location.replace(correctUrl);
+      }else if(!correctUrl){
         showGuard('حصل خطأ', 'صفك الدراسي غير محدد بشكل صحيح، تواصل مع الإدارة.', false);
       }
       return;
