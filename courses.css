@@ -148,6 +148,47 @@
 }
 .course-form-actions .btn{ flex: 1; }
 
+.course-locations-group{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.course-location-option{
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0 !important;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid color-mix(in srgb, var(--olive) 45%, transparent);
+  background: var(--cream);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: .88rem;
+  color: var(--ink);
+}
+.course-location-option input{
+  width: auto !important;
+  flex-shrink: 0;
+}
+.course-location-option:has(input:checked){
+  border-color: var(--coral);
+  background: color-mix(in srgb, var(--coral) 12%, var(--cream));
+}
+.course-locations-error{
+  display: none;
+  color: var(--coral-dark, #b3261e);
+  font-size: .82rem;
+  font-weight: 700;
+  margin: -8px 0 16px;
+}
+.course-locations-error.show{ display: block; }
+
+@media (max-width: 480px){
+  .course-locations-group{ grid-template-columns: 1fr; }
+}
+
 .course-active-toggle{
   display: flex;
   align-items: center;
