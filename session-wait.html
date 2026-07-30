@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>في انتظار الموافقة | الظلال</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="auth.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+  .wait-card{ text-align:center; max-width:440px; }
+  .wait-icon{ font-size:48px; margin-bottom:12px; }
+  .wait-countdown{
+    font-size:28px; font-weight:800; margin:18px 0 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .wait-countdown-label{ font-size:13px; opacity:.7; margin-bottom:18px; }
+  .wait-support-number{
+    display:inline-block; margin-top:10px; font-weight:700;
+    font-size:20px; direction:ltr;
+  }
+  .wait-cancel-btn{ margin-top:22px; }
+</style>
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<div class="auth-page">
+  <a href="index.html" class="auth-logo">
+    <span class="logo-icon" aria-hidden="true">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+        <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+        <text x="50" y="66" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="52" font-weight="700" fill="var(--maroon)">ظ</text>
+      </svg>
+    </span>
+    <span class="logo-text">الظلال</span>
+  </a>
+
+  <div class="auth-card wait-card">
+
+    <div id="statePending">
+      <div class="wait-icon">⏳</div>
+      <h1>في انتظار الموافقة</h1>
+      <p class="auth-sub">حسابك مسجّل دخول بالفعل من جهاز تاني. بعتنالهم طلب تأكيد، استنى ردهم من فضلك.</p>
+      <div class="wait-countdown" id="countdownDisplay">--:--:--</div>
+      <p class="wait-countdown-label">الوقت المتبقي قبل انتهاء الطلب تلقائيًا</p>
+      <button class="btn btn-ghost wait-cancel-btn" id="cancelBtn">إلغاء الطلب</button>
+    </div>
+
+    <div id="stateRejected" style="display:none">
+      <div class="wait-icon">🚫</div>
+      <h1>تم رفض الطلب</h1>
+      <p class="auth-sub">صاحب الحساب رفض طلب الدخول ده. جاري توجيهك للدعم الفني.</p>
+      <p>تواصل على الرقم:</p>
+      <span class="wait-support-number">01019569018</span>
+      <br>
+      <a href="login.html" class="btn btn-solid" style="margin-top:20px">رجوع لتسجيل الدخول</a>
+    </div>
+
+    <div id="stateExpired" style="display:none">
+      <div class="wait-icon">⌛</div>
+      <h1>انتهت مدة الطلب</h1>
+      <p class="auth-sub">لم يتم الرد من قبل صاحب الحساب خلال 24 ساعة.</p>
+      <a href="login.html" class="btn btn-solid" style="margin-top:20px">حاول تسجيل الدخول تاني</a>
+    </div>
+
+    <div id="stateApproved" style="display:none">
+      <div class="wait-icon">✅</div>
+      <h1>تم قبول الطلب</h1>
+      <p class="auth-sub">جاري تحويلك لصفحتك...</p>
+    </div>
+
+    <div id="stateCancelled" style="display:none">
+      <div class="wait-icon">✖️</div>
+      <h1>تم إلغاء الطلب</h1>
+      <a href="login.html" class="btn btn-solid" style="margin-top:20px">رجوع لتسجيل الدخول</a>
+    </div>
+
+  </div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script>
+const phone = localStorage.getItem('alzilal-pending-phone');
+const requestId = localStorage.getItem('alzilal-pending-request-id');
+const pendingSessionId = localStorage.getItem('alzilal-pending-session-id');
+const pendingGrade = localStorage.getItem('alzilal-pending-grade');
+
+const stateEls = {
+  pending: document.getElementById('statePending'),
+  rejected: document.getElementById('stateRejected'),
+  expired: document.getElementById('stateExpired'),
+  approved: document.getElementById('stateApproved'),
+  cancelled: document.getElementById('stateCancelled'),
+};
+
+function showState(name){
+  Object.values(stateEls).forEach(el => el.style.display = 'none');
+  stateEls[name].style.display = 'block';
+}
+
+if(!phone || !requestId){
+  window.location.replace('login.html');
+}
+
+let countdownInterval = null;
+let unsubscribe = null;
+const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+
+function startCountdown(requestedAtMs){
+  const deadline = requestedAtMs + TWENTY_FOUR_HOURS_MS;
+  const display = document.getElementById('countdownDisplay');
+
+  function tick(){
+    const remaining = deadline - Date.now();
+    if(remaining <= 0){
+      clearInterval(countdownInterval);
+      handleExpired();
+      return;
+    }
+    const h = Math.floor(remaining / 3600000);
+    const m = Math.floor((remaining % 3600000) / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    display.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+  tick();
+  countdownInterval = setInterval(tick, 1000);
+}
+
+async function handleExpired(){
+  if(unsubscribe) unsubscribe();
+  try{
+    const ref = db.collection('students').doc(phone);
+    const snap = await ref.get();
+    if(snap.exists && snap.data().sessionRequest && snap.data().sessionRequest.requestId === requestId){
+      // نمسح الطلب المنتهي بس لو لسه هو نفسه (مفيش حد رد عليه)
+      // ملحوظة: العميل هنا نفسه اللي بيمسح طلبه لأنه صاحب الـ uid،
+      // مسموح بقاعدة onlySessionFieldsChanged في الـ rules.
+      await ref.update({ sessionRequest: firebase.firestore.FieldValue.delete() });
+    }
+  }catch(e){ console.error(e); }
+  clearPendingStorage();
+  showState('expired');
+}
+
+function clearPendingStorage(){
+  localStorage.removeItem('alzilal-pending-session-id');
+  localStorage.removeItem('alzilal-pending-request-id');
+  localStorage.removeItem('alzilal-pending-phone');
+  localStorage.removeItem('alzilal-pending-grade');
+}
+
+async function init(){
+  await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+  unsubscribe = db.collection('students').doc(phone).onSnapshot((snap) => {
+    if(!snap.exists) return;
+    const d = snap.data();
+    const req = d.sessionRequest;
+
+    // لو الطلب اتمسح خالص من غير ما نلغيه إحنا (نادر) نعتبره اتلغى
+    if(!req || req.requestId !== requestId){
+      // ممكن يكون اتوافق عليه فعلاً وبقى activeSessionId هو الجلسة بتاعتنا
+      if(d.activeSessionId === pendingSessionId){
+        handleApproved();
+      }
+      return;
+    }
+
+    if(req.status === 'approved'){
+      handleApproved();
+    }else if(req.status === 'rejected'){
+      if(countdownInterval) clearInterval(countdownInterval);
+      if(unsubscribe) unsubscribe();
+      clearPendingStorage();
+      showState('rejected');
+    }else if(req.requestedAt){
+      // status لسه pending: نشغل العداد أول مرة بس
+      if(!countdownInterval){
+        startCountdown(req.requestedAt.toMillis());
+      }
+    }
+  });
+}
+
+async function handleApproved(){
+  if(countdownInterval) clearInterval(countdownInterval);
+  if(unsubscribe) unsubscribe();
+  showState('approved');
+  localStorage.setItem('alzilal-session-id', pendingSessionId);
+  localStorage.setItem('alzilal-current-student', phone);
+  clearPendingStorage();
+  const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
+  setTimeout(() => {
+    window.location.replace(gradeToPage[pendingGrade] || 'index.html');
+  }, 1200);
+}
+
+document.getElementById('cancelBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('cancelBtn');
+  btn.disabled = true;
+  btn.textContent = 'جاري الإلغاء...';
+  try{
+    const ref = db.collection('students').doc(phone);
+    const snap = await ref.get();
+    if(snap.exists && snap.data().sessionRequest && snap.data().sessionRequest.requestId === requestId){
+      await ref.update({ sessionRequest: firebase.firestore.FieldValue.delete() });
+    }
+  }catch(e){ console.error(e); }
+  if(countdownInterval) clearInterval(countdownInterval);
+  if(unsubscribe) unsubscribe();
+  clearPendingStorage();
+  showState('cancelled');
+});
+
+init();
+</script>
+</body>
+</html>
