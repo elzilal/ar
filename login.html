@@ -78,8 +78,14 @@
 <script src="script.js"></script>
 <script>
 // =========================================================
-// لو المستخدم داخل بالفعل (جلسة قديمة لسه شغالة وصالحة)، حوّله على طول
+// نظام الجلسة المبسّط:
+// أي تسجيل دخول جديد ناجح = يبقى فورًا هو الجلسة النشطة،
+// من غير أي انتظار موافقة. الجهاز القديم (لو موجود) هيتقفل
+// عليه تلقائيًا من صفحات sec*.html برسالة واضحة إنه تم تسجيل
+// دخول حسابه من جهاز تاني.
 // =========================================================
+
+// لو المستخدم داخل بالفعل بجلسة صالحة، حوّله على طول لصفحته
 let redirectHandled = false;
 const initialAuthCheck = auth.onAuthStateChanged(async (user) => {
   initialAuthCheck();
@@ -92,7 +98,6 @@ const initialAuthCheck = auth.onAuthStateChanged(async (user) => {
       if (snap.exists && snap.data().status === 'approved') {
         const mySessionId = localStorage.getItem('alzilal-session-id');
         const activeSessionId = snap.data().activeSessionId;
-        // مانحولوش تلقائي إلا لو الجلسة المحفوظة عندنا هي فعلاً النشطة
         if (mySessionId && activeSessionId && mySessionId === activeSessionId) {
           redirectHandled = true;
           const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
@@ -147,46 +152,26 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
     await loginCred.user.getIdToken(true);
 
-    // =========================================================
-    // نظام الجلسة الواحدة:
-    // لو مفيش جلسة نشطة حاليًا -> نفتح جلسة جديدة على طول.
-    // لو فيه جلسة نشطة -> نبعت طلب ونستنى موافقة صاحب الجلسة الحالية.
-    // =========================================================
-    if(!student.activeSessionId){
-      const newSessionId = generateSessionId();
-      await studentRef.update({ activeSessionId: newSessionId, sessionRequest: firebase.firestore.FieldValue.delete() });
-      localStorage.setItem('alzilal-session-id', newSessionId);
-      localStorage.setItem('alzilal-current-student', data.studentPhone);
-      redirectHandled = true;
-      submitBtn.textContent = 'تم الدخول، جاري التحويل...';
-      const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
-      window.location.href = gradeToPage[student.grade] || 'index.html';
-      return;
-    }
-
-    // فيه جلسة نشطة بالفعل -> نبعت طلب ونروح لصفحة الانتظار
-    const requestId = generateSessionId();
+    // نظام الجلسة الواحدة المبسّط: تسجيل الدخول الجديد يفتح جلسة
+    // جديدة فورًا ويحل محل أي جلسة قديمة، من غير انتظار موافقة حد.
     const newSessionId = generateSessionId();
     await studentRef.update({
-      sessionRequest: {
-        requestId: requestId,
-        requestedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        status: 'pending',
-        newSessionId: newSessionId
-      }
+      activeSessionId: newSessionId,
+      sessionRequest: firebase.firestore.FieldValue.delete()
     });
+    localStorage.setItem('alzilal-session-id', newSessionId);
+    localStorage.setItem('alzilal-current-student', data.studentPhone);
 
-    localStorage.setItem('alzilal-pending-session-id', newSessionId);
-    localStorage.setItem('alzilal-pending-request-id', requestId);
-    localStorage.setItem('alzilal-pending-phone', data.studentPhone);
-    localStorage.setItem('alzilal-pending-grade', student.grade || '');
-
-    window.location.href = 'session-wait.html';
+    redirectHandled = true;
+    submitBtn.textContent = 'تم الدخول، جاري التحويل...';
+    const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
+    window.location.href = gradeToPage[student.grade] || 'index.html';
 
   }catch(err){
     console.error(err);
     let msg = 'رقم الطالب أو كلمة المرور غير صحيحة.';
     if(err.code === 'auth/too-many-requests') msg = 'محاولات كتير غلط، حاول تاني بعد شوية.';
+    if(err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = 'رقم الطالب أو كلمة المرور غير صحيحة.';
     alert(msg);
     submitBtn.disabled = false;
     submitBtn.textContent = 'تسجيل الدخول';
