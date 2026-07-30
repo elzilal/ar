@@ -18,3 +18,24 @@
   outline: none;
   border-color: var(--coral);
 }
+
+.video-details{
+  color: var(--ink-soft);
+  font-size: .92rem;
+  line-height: 1.7;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+}
+
+.video-link{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--coral);
+  margin-bottom: 16px;
+}
+.video-link:hover{ text-decoration: underline; }
