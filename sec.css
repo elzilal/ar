@@ -39,6 +39,157 @@
 }
 [data-theme="dark"] .student-name-chip{ color: var(--gold); background: rgba(238,219,123,0.12); }
 
+/* ============ صورة البروفايل الوهمية جمب الاسم ============ */
+.student-profile-chip{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.student-avatar-mini{
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--gold), var(--olive));
+  color: var(--maroon);
+  flex-shrink: 0;
+  border: 2px solid color-mix(in srgb, var(--gold) 60%, transparent);
+  transition: transform .2s ease;
+}
+.student-avatar-mini svg{ width: 18px; height: 18px; }
+.student-profile-chip:hover .student-avatar-mini{ transform: scale(1.08); }
+
+/* ============ بار التابات ============ */
+.sec-tabs{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 6vw 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sec-tab{
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--olive) 45%, transparent);
+  background: transparent;
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.sec-tab:hover{ border-color: var(--coral); color: var(--coral); }
+.sec-tab.active{
+  background: var(--coral);
+  border-color: var(--coral);
+  color: #fff;
+}
+
+.sec-tab-panel{ display: none; }
+.sec-tab-panel.active{ display: block; }
+
+/* ============ كورس مفعّل: بلوك فيه عنوان + شبكة فيديوهات ============ */
+.enrolled-course-block{ margin-bottom: 44px; }
+.enrolled-course-title{
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--maroon);
+  margin: 0 0 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
+}
+[data-theme="dark"] .enrolled-course-title{ color: var(--gold); }
+
+.videos-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.video-thumb-card{
+  display: flex;
+  flex-direction: column;
+  background: var(--cream-2);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.video-thumb-card:hover{
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+}
+.video-thumb-img-wrap{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: color-mix(in srgb, var(--ink) 8%, var(--cream));
+}
+.video-thumb-img-wrap img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.video-thumb-play{
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  color: #fff;
+  background: rgba(20,15,10,0.25);
+}
+.video-thumb-body{ padding: 14px 16px; }
+.video-thumb-body h4{
+  margin: 0 0 6px;
+  font-size: .96rem;
+  color: var(--ink);
+}
+.video-thumb-body p{
+  margin: 0;
+  font-size: .8rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============ قايمة النشاط ============ */
+.activity-list{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.activity-item{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--cream-2);
+  border: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+}
+.activity-icon{
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(180,187,121,0.25);
+  color: var(--maroon);
+  font-size: .8rem;
+  flex-shrink: 0;
+}
+[data-theme="dark"] .activity-icon{ color: var(--gold); background: rgba(180,187,121,0.15); }
+.activity-info h4{ margin: 0 0 3px; font-size: .92rem; color: var(--ink); }
+.activity-date{ font-size: .78rem; color: var(--ink-soft); }
+
 .sec-page{
   max-width: 1100px;
   margin: 0 auto;
