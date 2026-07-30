@@ -107,9 +107,22 @@ function showGuard(title, text, showLoginBtn){
 
 let currentStudent = null;
 let currentStudentId = null;
+let authCheckAttempts = 0;
 
 auth.onAuthStateChanged(async (user) => {
   if(!user){
+    authCheckAttempts++;
+    // لو الطالب لسه لتوّه جاي من صفحة تسجيل الدخول، ممكن حالة الجلسة تاخد
+    // جزء من الثانية عشان "تستقر". قبل ما نظهر شاشة "لازم تسجل دخول"،
+    // بنديها فرصة واحدة كمان بعد فاصل قصير.
+    if(authCheckAttempts === 1 && localStorage.getItem('alzilal-current-student')){
+      setTimeout(() => {
+        if(!auth.currentUser){
+          showGuard('لازم تسجل دخول الأول', 'الصفحة دي متاحة للطلاب المسجلين والمقبولين فقط.', true);
+        }
+      }, 800);
+      return;
+    }
     showGuard('لازم تسجل دخول الأول', 'الصفحة دي متاحة للطلاب المسجلين والمقبولين فقط.', true);
     return;
   }
