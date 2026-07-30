@@ -117,11 +117,15 @@
       return;
     }
     db.collection('courses')
-      .where('location', '==', 'index')
       .where('active', '==', true)
       .get()
       .then(snap => {
-        const courses = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const courses = snap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(c => {
+            const locs = Array.isArray(c.locations) ? c.locations : (c.location ? [c.location] : []);
+            return locs.includes('index');
+          });
         renderCourses(courses);
       })
       .catch(err => {
