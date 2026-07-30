@@ -131,14 +131,27 @@
       </div>
 
       <label>
-        <span>مكان عرض الكورس</span>
-        <select id="courseLocation" required>
-          <option value="index">الصفحة الرئيسية (index)</option>
-          <option value="sec1">صفحة أولى ثانوي (sec1)</option>
-          <option value="sec2">صفحة تانية ثانوي (sec2)</option>
-          <option value="sec3">صفحة تالتة ثانوي (sec3)</option>
-        </select>
+        <span>مكان عرض الكورس (يمكن اختيار أكثر من مكان)</span>
       </label>
+      <div class="course-locations-group" id="courseLocationsGroup">
+        <label class="course-location-option">
+          <input type="checkbox" name="courseLocation" value="index">
+          <span>الصفحة الرئيسية (index)</span>
+        </label>
+        <label class="course-location-option">
+          <input type="checkbox" name="courseLocation" value="sec1">
+          <span>صفحة أولى ثانوي (sec1)</span>
+        </label>
+        <label class="course-location-option">
+          <input type="checkbox" name="courseLocation" value="sec2">
+          <span>صفحة تانية ثانوي (sec2)</span>
+        </label>
+        <label class="course-location-option">
+          <input type="checkbox" name="courseLocation" value="sec3">
+          <span>صفحة تالتة ثانوي (sec3)</span>
+        </label>
+      </div>
+      <p class="course-locations-error" id="courseLocationsError">لازم تختار مكان عرض واحد على الأقل</p>
 
       <label id="courseGradeWrap">
         <span>الصف الدراسي المرتبط بالكورس</span>
@@ -273,7 +286,7 @@ function renderCourses(){
 
   const filtered = currentFilter === 'all'
     ? allCourses
-    : allCourses.filter(c => c.location === currentFilter);
+    : allCourses.filter(c => getCourseLocations(c).includes(currentFilter));
 
   if(filtered.length === 0){
     list.innerHTML = '';
@@ -288,7 +301,7 @@ function renderCourses(){
       <div class="course-admin-info">
         <h3>${escapeHtml(c.title || '')}</h3>
         <div class="course-admin-meta">
-          <span class="course-admin-tag">${locationNames[c.location] || c.location}</span>
+          ${getCourseLocations(c).map(loc => `<span class="course-admin-tag">${escapeHtml(locationNames[loc] || loc)}</span>`).join('')}
           <span class="course-admin-price">${escapeHtml(String(c.price ?? ''))} ${escapeHtml(c.currency || 'جنيه')}</span>
           ${c.active === false ? '<span class="course-admin-tag tag-inactive">غير مفعّل</span>' : ''}
         </div>
@@ -310,6 +323,17 @@ function renderCourses(){
   list.querySelectorAll('.delete-course-btn').forEach(btn => {
     btn.addEventListener('click', () => openDeleteModal(btn.dataset.id));
   });
+}
+
+// يرجع مصفوفة أماكن العرض للكورس، مع التوافق مع الكورسات القديمة اللي كانت مسجلة بمكان واحد (location)
+function getCourseLocations(course){
+  if(Array.isArray(course.locations) && course.locations.length){
+    return course.locations;
+  }
+  if(course.location){
+    return [course.location];
+  }
+  return [];
 }
 
 function escapeHtml(str){
@@ -334,27 +358,37 @@ document.getElementById('refreshBtn').addEventListener('click', loadCourses);
 const courseModal = document.getElementById('courseModal');
 const courseForm = document.getElementById('courseForm');
 const courseModalTitle = document.getElementById('courseModalTitle');
-const courseLocationSelect = document.getElementById('courseLocation');
+const courseLocationCheckboxes = document.querySelectorAll('input[name="courseLocation"]');
+const courseLocationsError = document.getElementById('courseLocationsError');
 const courseGradeWrap = document.getElementById('courseGradeWrap');
 
-// ربط مكان العرض بالصف الدراسي تلقائيًا (sec1 = صف 1، ...) وإخفاء الحقل لو "index"
+function getSelectedLocations(){
+  return Array.from(courseLocationCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
+}
+function setSelectedLocations(locations){
+  const arr = Array.isArray(locations) ? locations : (locations ? [locations] : []);
+  courseLocationCheckboxes.forEach(cb => { cb.checked = arr.includes(cb.value); });
+}
+
+// ربط أول مكان مرتبط بصف دراسي (sec1 = صف 1، ...) بالصف الدراسي تلقائيًا كقيمة مبدئية
 const locationToGrade = { sec1: '1', sec2: '2', sec3: '3' };
 function syncGradeVisibility(){
-  const loc = courseLocationSelect.value;
-  if(loc === 'index'){
-    courseGradeWrap.style.display = 'block'; // لسه ممكن يتحدد لأي صف لعرضه في index
-  }else{
-    courseGradeWrap.style.display = 'block';
-    document.getElementById('courseGrade').value = locationToGrade[loc] || '1';
+  const selected = getSelectedLocations();
+  const gradeMatch = selected.find(loc => locationToGrade[loc]);
+  courseGradeWrap.style.display = 'block';
+  if(gradeMatch){
+    document.getElementById('courseGrade').value = locationToGrade[gradeMatch];
   }
 }
-courseLocationSelect.addEventListener('change', syncGradeVisibility);
+courseLocationCheckboxes.forEach(cb => cb.addEventListener('change', syncGradeVisibility));
 
 function openAddModal(){
   courseForm.reset();
   document.getElementById('courseId').value = '';
   document.getElementById('courseCurrency').value = 'جنيه';
   document.getElementById('courseActive').checked = true;
+  setSelectedLocations([]);
+  courseLocationsError.classList.remove('show');
   courseModalTitle.textContent = 'إضافة كورس جديد';
   syncGradeVisibility();
   courseModal.classList.add('active');
@@ -367,7 +401,8 @@ function openEditModal(id){
   document.getElementById('courseTitle').value = course.title || '';
   document.getElementById('coursePrice').value = course.price ?? '';
   document.getElementById('courseCurrency').value = course.currency || 'جنيه';
-  document.getElementById('courseLocation').value = course.location || 'index';
+  setSelectedLocations(getCourseLocations(course));
+  courseLocationsError.classList.remove('show');
   document.getElementById('courseGrade').value = course.grade || '1';
   document.getElementById('courseImage').value = course.image || '';
   document.getElementById('courseActive').checked = course.active !== false;
@@ -382,6 +417,14 @@ courseModal.addEventListener('click', (e) => { if(e.target === courseModal) cour
 
 courseForm.addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  const selectedLocations = getSelectedLocations();
+  if(selectedLocations.length === 0){
+    courseLocationsError.classList.add('show');
+    return;
+  }
+  courseLocationsError.classList.remove('show');
+
   const saveBtn = document.getElementById('saveCourseBtn');
   saveBtn.disabled = true;
   saveBtn.textContent = 'جاري الحفظ...';
@@ -391,7 +434,8 @@ courseForm.addEventListener('submit', async (e) => {
     title: document.getElementById('courseTitle').value.trim(),
     price: Number(document.getElementById('coursePrice').value),
     currency: document.getElementById('courseCurrency').value.trim() || 'جنيه',
-    location: document.getElementById('courseLocation').value,
+    locations: selectedLocations,
+    location: selectedLocations[0], // للتوافق مع أي صفحة تانية لسه بتقرأ الحقل القديم
     grade: document.getElementById('courseGrade').value,
     image: document.getElementById('courseImage').value.trim(),
     active: document.getElementById('courseActive').checked
