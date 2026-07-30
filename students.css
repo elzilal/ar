@@ -110,3 +110,25 @@
   border-radius: 999px;
 }
 [data-theme="dark"] .student-grade-tag{ color: var(--gold); background: rgba(238,219,123,0.12); }
+
+.student-courses{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+.student-course-tag{
+  display: inline-block;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--maroon);
+  background: rgba(180,187,121,0.25);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+[data-theme="dark"] .student-course-tag{ color: var(--gold); background: rgba(180,187,121,0.15); }
+.student-course-tag-empty{
+  color: var(--ink-soft);
+  background: rgba(120,120,120,0.12);
+}
