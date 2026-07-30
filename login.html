@@ -107,7 +107,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     const student = snap.data();
 
     // تسجيل الدخول عبر Firebase Authentication (بيتحقق من كلمة السر المشفّرة)
-    await auth.signInWithEmailAndPassword(fakeEmail, data.password);
+    const loginCred = await auth.signInWithEmailAndPassword(fakeEmail, data.password);
 
     if(student.status !== 'approved'){
       await auth.signOut();
@@ -120,8 +120,16 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     localStorage.setItem('alzilal-current-student', data.studentPhone);
     submitBtn.textContent = 'تم الدخول، جاري التحويل...';
 
-    // تحويل الطالب مباشرة لصفحة صفه الدراسي (من غير alert بيوقف التنفيذ
-    // ويأخر التحويل، عشان الانتقال يبقى سريع وسلس)
+    // نجبر تحديث التوكن ونستنى لحظة فعلية قبل ما نعمل تحويل كامل للصفحة (full page navigation).
+    // ده مهم جدًا: من غيره، أحيانًا صفحة sec1/2/3 بتفتح وتقرأ حالة "مفيش يوزر مسجل دخول"
+    // رغم إن تسجيل الدخول نجح فعلاً، لأن حالة الجلسة (session) لسه ما استقرتش
+    // في تخزين المتصفح (IndexedDB) قبل ما نعمل الانتقال الكامل بين الصفحات.
+    if(loginCred && loginCred.user){
+      await loginCred.user.getIdToken(true);
+    }
+    await new Promise(r => setTimeout(r, 400));
+
+    // تحويل الطالب مباشرة لصفحة صفه الدراسي
     const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
     window.location.href = gradeToPage[student.grade] || 'index.html';
   }catch(err){
