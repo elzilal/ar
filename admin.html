@@ -174,17 +174,12 @@ function lockAdmin(){
   adminGate.style.display = 'flex';
 }
 
-// Firebase بيتابع حالة الدخول تلقائيًا، فلو المستخدم مسجل دخول بالفعل
-// (حتى بعد ريفرش للصفحة) هيدخل على طول من غير ما يكتب الباسورد تاني
 auth.onAuthStateChanged(async (user) => {
-  // تحقق مهم: نمنع أي حساب طالب (@elzilal-student.app) من دخول لوحة الأدمن
   if(user && user.email && !user.email.endsWith('@elzilal-student.app')){
-    // نجبر تحديث الـ ID token عشان نضمن إن الـ email claim موجود فعليًا
-    // قبل أي عملية update على Firestore (بيحل مشكلة "Missing or insufficient permissions")
     try{ await user.getIdToken(true); }catch(e){ console.error(e); }
     unlockAdmin();
   }else{
-    if(user) auth.signOut(); // لو حساب طالب حاول يدخل هنا، نطلعه فورًا
+    if(user) auth.signOut();
     lockAdmin();
   }
 });
@@ -201,7 +196,6 @@ gateForm.addEventListener('submit', async (e) => {
 
   try{
     await auth.signInWithEmailAndPassword(email, password);
-    // onAuthStateChanged هيتكفل بفتح اللوحة تلقائيًا
   }catch(err){
     console.error(err);
     gateError.textContent = 'البريد أو كلمة المرور غير صحيحة';
@@ -231,8 +225,14 @@ async function loadStudents(){
   document.getElementById('studentsList').innerHTML = '';
 
   try{
-    const snap = await db.collection('students').orderBy('createdAt', 'desc').get();
+    // بدون orderBy لتفادي الحاجة لـ composite index، ونرتب في الواجهة
+    const snap = await db.collection('students').get();
     allStudents = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    allStudents.sort((a, b) => {
+      const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return tb - ta;
+    });
 
     updateStats();
     renderStudents();
@@ -288,19 +288,15 @@ function renderStudents(){
     </div>
   `).join('');
 
-  // ربط أزرار القبول
   list.querySelectorAll('.approve-btn').forEach(btn => {
     btn.addEventListener('click', () => updateStudentStatus(btn.dataset.id, 'approved'));
   });
-  // ربط أزرار الرفض (بتأكيد)
   list.querySelectorAll('.reject-btn').forEach(btn => {
     btn.addEventListener('click', () => openConfirmModal(btn.dataset.id));
   });
-  // إرجاع لقيد المراجعة
   list.querySelectorAll('.reset-btn').forEach(btn => {
     btn.addEventListener('click', () => updateStudentStatus(btn.dataset.id, 'pending'));
   });
-  // ربط أزرار الحذف النهائي (بتأكيد)
   list.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', () => openDeleteModal(btn.dataset.id));
   });
@@ -321,13 +317,11 @@ async function updateStudentStatus(id, newStatus, isRetry){
     updateStats();
     renderStudents();
   }catch(err){
-    // لو الخطأ صلاحيات وأول مرة، جدد التوكن وحاول مرة واحدة تانية
-    // (بيحصل أحيانًا لو الـ email claim اتأخر شوية في التحديث)
     if(!isRetry && err.code === 'permission-denied' && auth.currentUser){
       try{
         await auth.currentUser.getIdToken(true);
         return updateStudentStatus(id, newStatus, true);
-      }catch(e){ /* تجاهل، هنطلع الخطأ الأصلي تحت */ }
+      }catch(e){ /* تجاهل */ }
     }
     console.error(err);
     alert('حصل خطأ أثناء تحديث حالة الطالب: ' + err.message);
@@ -342,12 +336,11 @@ async function deleteStudent(id, isRetry){
     updateStats();
     renderStudents();
   }catch(err){
-    // نفس منطق إعادة المحاولة بعد تجديد التوكن في حالة صلاحيات متأخرة
     if(!isRetry && err.code === 'permission-denied' && auth.currentUser){
       try{
         await auth.currentUser.getIdToken(true);
         return deleteStudent(id, true);
-      }catch(e){ /* تجاهل، هنطلع الخطأ الأصلي تحت */ }
+      }catch(e){ /* تجاهل */ }
     }
     console.error(err);
     alert('حصل خطأ أثناء حذف الطالب: ' + err.message);
