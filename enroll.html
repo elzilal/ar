@@ -144,6 +144,10 @@ const courseId = urlParams.get('course');
 let currentStudent = null;
 let currentStudentId = null;
 let currentCourse = null;
+let enrollSettled = false;
+let enrollSawNullOnce = false;
+
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e => console.error('persistence error', e));
 
 auth.onAuthStateChanged(async (user) => {
   if(!courseId){
@@ -151,10 +155,28 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
+  if(!user){
+    // أول رد فارغ ممكن يكون مؤقت لحد ما Firebase يسترجع الجلسة المحفوظة،
+    // منرفضش الطالب من أول مرة، ننتظر رد تاني قبل ما نعتبرها فعلاً "مسجلش دخول".
+    if(enrollSawNullOnce || enrollSettled) return;
+    enrollSawNullOnce = true;
+    return;
+  }
+
+  if(!user.email){
+    try{ await user.reload(); user = auth.currentUser; }catch(e){ console.error(e); }
+  }
+
   if(!user || !user.email || !user.email.endsWith('@elzilal-student.app')){
+    if(!user || !user.email){
+      return; // نستنى تحديث تاني بدل ما نرفض فورًا
+    }
+    enrollSettled = true;
     showGuard('لازم تسجل دخول الأول', 'صفحة الاشتراك متاحة للطلاب المسجلين فقط.', true);
     return;
   }
+
+  enrollSettled = true;
 
   const phone = user.email.replace('@elzilal-student.app', '');
 
