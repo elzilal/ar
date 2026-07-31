@@ -1,14 +1,10 @@
-/* =========================================================
-   صفحة مشاهدة الدرس (watch.html)
-   تستخدم نفس أنماط sec.css + إضافات هنا
-   ========================================================= */
-
 .watch-page{
   max-width: 900px;
   margin: 0 auto;
   padding: 34px 6vw 90px;
+  user-select: none;
+  -webkit-user-select: none;
 }
-
 .watch-back-link{
   display: inline-block;
   margin-bottom: 20px;
@@ -17,7 +13,6 @@
   font-size: .9rem;
 }
 .watch-back-link:hover{ text-decoration: underline; }
-
 .watch-video-wrap{
   position: relative;
   width: 100%;
@@ -33,8 +28,30 @@
   width: 100%;
   height: 100%;
   border: 0;
+  pointer-events: auto;
 }
-
+.video-shield{
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: transparent;
+  cursor: pointer;
+}
+.video-watermark{
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+  font-family: var(--font-body, 'Cairo', sans-serif);
+  font-size: .78rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.55);
+  background: rgba(0,0,0,.28);
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition: left 1.2s ease, top 1.2s ease;
+  user-select: none;
+}
 .watch-info{
   margin-top: 24px;
   background: var(--cream-2);
@@ -54,4 +71,11 @@
   color: var(--ink-soft);
   line-height: 1.8;
   font-size: .92rem;
+}
+.watch-warning{
+  margin-top: 16px;
+  font-size: .82rem;
+  color: var(--ink-soft);
+  opacity: .75;
+  text-align: center;
 }
