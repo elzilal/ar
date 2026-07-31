@@ -1,7 +1,3 @@
-/* =========================================================
-   الظلال — Design Tokens
-   مستوحاة من ألوان اللوجو (دهبي/زيتوني) وزرار الثيم (مرجاني)
-   ========================================================= */
 :root{
   --coral:      #F04B37;
   --coral-dark: #D8391F;
@@ -13,20 +9,16 @@
   --cream-2:    #FBF1DA;
   --ink:        #2B1F14;
   --ink-soft:   #5B4A36;
-
   --header-h: 84px;
   --radius-lg: 28px;
   --radius-md: 18px;
   --radius-sm: 12px;
   --shadow-soft: 0 20px 45px -20px rgba(43,31,20,0.28);
   --shadow-card: 0 14px 32px -16px rgba(122,46,23,0.25);
-
   --font-display: 'Aref Ruqaa', 'Cairo', serif;
   --font-body: 'Cairo', sans-serif;
-
   color-scheme: light;
 }
-
 [data-theme="dark"]{
   --cream:  #201812;
   --cream-2:#2A1F17;
@@ -35,11 +27,8 @@
   --shadow-soft: 0 20px 50px -18px rgba(0,0,0,0.6);
   color-scheme: dark;
 }
-
 *,*::before,*::after{ box-sizing: border-box; }
-
 html{ scroll-behavior: smooth; }
-
 body{
   margin:0;
   font-family: var(--font-body);
@@ -50,15 +39,11 @@ body{
   overflow-x: hidden;
   transition: background .4s ease, color .4s ease;
 }
-
 a{ color:inherit; text-decoration:none; }
 img{ max-width:100%; display:block; }
 button{ font-family:inherit; cursor:pointer; border:none; background:none; }
 ul{ margin:0; padding:0; list-style:none; }
-
 ::selection{ background: var(--coral); color:#fff; }
-
-/* ============ خلفية زخرفية خفيفة ============ */
 .bg-pattern{
   position: fixed;
   inset: 0;
@@ -69,10 +54,6 @@ ul{ margin:0; padding:0; list-style:none; }
     radial-gradient(circle at 90% 15%, rgba(240,75,55,0.10), transparent 45%),
     radial-gradient(circle at 50% 95%, rgba(180,187,121,0.18), transparent 45%);
 }
-
-/* =========================================================
-   الهيدر العائم
-   ========================================================= */
 .site-header{
   position: fixed;
   top: 18px;
@@ -88,12 +69,10 @@ ul{ margin:0; padding:0; list-style:none; }
   box-shadow: var(--shadow-soft);
   transition: box-shadow .3s ease, background .4s ease, top .3s ease;
 }
-
 .site-header.scrolled{
   top: 10px;
   box-shadow: 0 16px 34px -14px rgba(43,31,20,0.35);
 }
-
 .header-inner{
   display: flex;
   align-items: center;
@@ -102,14 +81,12 @@ ul{ margin:0; padding:0; list-style:none; }
   padding: 0 14px 0 22px;
   gap: 16px;
 }
-
 .logo{
   display: flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
 }
-
 .logo-icon{
   width: 42px;
   height: 42px;
@@ -121,7 +98,6 @@ ul{ margin:0; padding:0; list-style:none; }
   box-shadow: inset 0 0 0 2px rgba(122,46,23,0.12);
 }
 .logo-svg{ width: 100%; height: 100%; }
-
 .logo-text{
   font-family: var(--font-display);
   font-size: 1.6rem;
@@ -130,14 +106,11 @@ ul{ margin:0; padding:0; list-style:none; }
   letter-spacing: .5px;
 }
 [data-theme="dark"] .logo-text{ color: var(--gold); }
-
 .header-actions{
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
-/* زرار الثيم — مطابق لتصميم الصورة المرجعية */
 .theme-toggle{
   width: 64px;
   height: 34px;
@@ -176,7 +149,6 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 [data-theme="dark"] .theme-toggle-thumb{ right: calc(100% - 28px); }
 [data-theme="dark"] .icon-moon{ color: #fff; }
-
 .btn{
   display: inline-flex;
   align-items: center;
@@ -195,14 +167,12 @@ ul{ margin:0; padding:0; list-style:none; }
 .btn-ghost:hover{ background: rgba(122,46,23,0.08); }
 [data-theme="dark"] .btn-ghost{ color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
 [data-theme="dark"] .btn-ghost:hover{ background: rgba(238,219,123,0.1); }
-
 .btn-solid{
   background: linear-gradient(135deg, var(--coral), var(--coral-dark));
   color: #fff;
   box-shadow: 0 10px 22px -8px rgba(240,75,55,0.55);
 }
 .btn-solid:hover{ transform: translateY(-2px); box-shadow: 0 14px 26px -8px rgba(240,75,55,0.6); }
-
 .menu-toggle{
   display: none;
   flex-direction: column;
@@ -216,7 +186,6 @@ ul{ margin:0; padding:0; list-style:none; }
   transition: all .3s ease;
 }
 [data-theme="dark"] .menu-toggle span{ background: var(--gold); }
-
 .mobile-menu{
   display: none;
   flex-direction: column;
@@ -225,10 +194,6 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 .mobile-menu.open{ display: flex; }
 .mobile-menu .btn{ width: 100%; }
-
-/* =========================================================
-   الهيرو
-   ========================================================= */
 .hero{
   position: relative;
   padding: calc(var(--header-h) + 70px) 6vw 60px;
@@ -255,7 +220,6 @@ ul{ margin:0; padding:0; list-style:none; }
   gap: 50px;
   align-items: center;
 }
-
 .hero-image-wrap{
   position: relative;
   display: flex;
@@ -281,9 +245,7 @@ ul{ margin:0; padding:0; list-style:none; }
   z-index: 1;
   border-radius: 50%;
 }
-
 .hero-content{ text-align: right; }
-
 .hero-eyebrow{
   display: inline-flex;
   align-items: center;
@@ -300,7 +262,6 @@ ul{ margin:0; padding:0; list-style:none; }
 .eyebrow-icon{ width: 18px; height: 18px; }
 .eyebrow-icon svg{ width: 100%; height: 100%; fill: var(--maroon); }
 [data-theme="dark"] .eyebrow-icon svg{ fill: var(--gold); }
-
 .hero-title{
   font-family: var(--font-display);
   font-size: clamp(3rem, 6vw, 5.2rem);
@@ -313,7 +274,6 @@ ul{ margin:0; padding:0; list-style:none; }
   background-clip: text;
   color: transparent;
 }
-
 .hero-desc{
   font-size: 1.2rem;
   color: var(--ink-soft);
@@ -327,10 +287,6 @@ ul{ margin:0; padding:0; list-style:none; }
   font-weight: 700;
 }
 .hero-motto strong{ color: var(--coral); }
-
-/* =========================================================
-   قسم الكورسات
-   ========================================================= */
 .courses{
   padding: 90px 6vw;
   max-width: 1320px;
@@ -346,13 +302,11 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 [data-theme="dark"] .section-head h2{ color: var(--gold); }
 .section-head p{ color: var(--ink-soft); font-size: 1.05rem; }
-
 .courses-grid{
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 14px;
 }
-
 .course-card{
   background: var(--maroon);
   border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
@@ -365,7 +319,6 @@ ul{ margin:0; padding:0; list-style:none; }
   transition: transform .3s ease, box-shadow .3s ease;
   animation: courseCardIn .55s ease backwards;
 }
-/* كل كارت يدخل بتأخير بسيط عن اللي قبله عشان يبان متتابع مش كله مرة واحدة */
 .courses-grid .course-card:nth-child(1){ animation-delay: .05s; }
 .courses-grid .course-card:nth-child(2){ animation-delay: .12s; }
 .courses-grid .course-card:nth-child(3){ animation-delay: .19s; }
@@ -373,7 +326,6 @@ ul{ margin:0; padding:0; list-style:none; }
 .courses-grid .course-card:nth-child(5){ animation-delay: .33s; }
 .courses-grid .course-card:nth-child(6){ animation-delay: .4s; }
 .courses-grid .course-card:nth-child(n+7){ animation-delay: .45s; }
-
 @keyframes courseCardIn{
   from{
     opacity: 0;
@@ -387,7 +339,6 @@ ul{ margin:0; padding:0; list-style:none; }
 @media (prefers-reduced-motion: reduce){
   .course-card{ animation: none; }
 }
-
 .course-card::before{
   content: "";
   position: absolute;
@@ -458,7 +409,6 @@ ul{ margin:0; padding:0; list-style:none; }
   font-family: var(--font-display);
 }
 .course-price .currency{ color: rgba(255,255,255,0.8); font-weight: 600; font-size: .72rem; }
-
 .course-btn{
   display: block;
   text-align: center;
@@ -472,10 +422,6 @@ ul{ margin:0; padding:0; list-style:none; }
   transition: background .25s ease;
 }
 .course-btn:hover{ background: var(--coral); }
-
-/* =========================================================
-   قسم المدرس
-   ========================================================= */
 .about-teacher{
   padding: 90px 0;
   width: 100%;
@@ -522,10 +468,6 @@ ul{ margin:0; padding:0; list-style:none; }
   font-weight: 700;
   font-size: .95rem;
 }
-
-/* =========================================================
-   قسم ليه تختارنا
-   ========================================================= */
 .why-us{
   padding: 90px 6vw;
   max-width: 1320px;
@@ -572,10 +514,6 @@ ul{ margin:0; padding:0; list-style:none; }
   font-size: .98rem;
   margin: 0;
 }
-
-/* =========================================================
-   الفوتر
-   ========================================================= */
 .site-footer{
   background: var(--maroon);
   color: var(--gold-soft);
@@ -594,13 +532,11 @@ ul{ margin:0; padding:0; list-style:none; }
 .footer-col{ display: flex; flex-direction: column; }
 .footer-col-dev{ align-items: flex-start; text-align: right; }
 .footer-col-social{ align-items: flex-end; text-align: left; }
-
 .footer-divider{
   width: 1px;
   align-self: stretch;
   background: color-mix(in srgb, var(--gold) 35%, transparent);
 }
-
 .footer-logo{
   display: flex;
   align-items: center;
@@ -619,7 +555,6 @@ ul{ margin:0; padding:0; list-style:none; }
   text-underline-offset: 3px;
 }
 .footer-copy a:hover{ color: #fff; }
-
 .footer-col-social h3{
   font-family: var(--font-display);
   font-size: 1.4rem;
@@ -650,10 +585,6 @@ ul{ margin:0; padding:0; list-style:none; }
 .social-btn.whatsapp{ background: #25D366; }
 .social-btn.tiktok{ background: var(--ink); }
 .social-btn.facebook{ background: #1877F2; }
-
-/* =========================================================
-   استجابة للشاشات الصغيرة
-   ========================================================= */
 @media (max-width: 900px){
   .hero-inner{ grid-template-columns: 1fr; text-align: center; }
   .hero-content{ text-align: center; }
@@ -664,20 +595,16 @@ ul{ margin:0; padding:0; list-style:none; }
   .footer-col-dev, .footer-col-social{ align-items: center; text-align: center; }
   .social-links{ justify-content: center; }
 }
-
 @media (max-width: 720px){
   .header-actions .btn{ display: none; }
   .menu-toggle{ display: flex; }
   .site-header{ border-radius: 26px; }
   .header-inner{ padding: 0 16px; }
 }
-
 @media (max-width: 480px){
   .logo-text{ font-size: 1.3rem; }
   .social-links{ gap: 16px; }
 }
-
-/* حركة دخول بسيطة */
 @media (prefers-reduced-motion: no-preference){
   .hero-content, .hero-image-wrap{
     animation: fadeUp .7s ease both;
@@ -688,10 +615,6 @@ ul{ margin:0; padding:0; list-style:none; }
     to{ opacity:1; transform: translateY(0); }
   }
 }
-
-/* =========================================================
-   سبلاش شاشة البداية (index.html فقط)
-   ========================================================= */
 .splash-screen{
   position: fixed;
   inset: 0;
@@ -743,11 +666,6 @@ ul{ margin:0; padding:0; list-style:none; }
   .splash-logo-icon{ animation: none; }
   .splash-spinner{ animation: splashSpin 1.2s linear infinite; }
 }
-
-/* =========================================================
-   زرار الثيم العائم — للصفحات اللي مفيهاش هيدر ثابت
-   (enroll / login / signup)
-   ========================================================= */
 .theme-toggle-floating{
   position: fixed;
   top: 18px;
