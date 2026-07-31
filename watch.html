@@ -22,12 +22,10 @@
 
 <div class="bg-pattern" aria-hidden="true"></div>
 
-<!-- ============ حارس الوصول (Splash Screen) ============ -->
-<div class="access-guard splash-loader" id="accessGuard" style="display:flex">
-  <p class="splash-logo">الظلال</p>
-  <div class="splash-spinner"><span></span><span></span></div>
-  <h1 class="splash-text" id="guardTitle">جاري التحميل...</h1>
-  <p class="splash-text" id="guardText"></p>
+<!-- ============ حارس الوصول (مخفي بصريًا أثناء التحقق) ============ -->
+<div class="access-guard" id="accessGuard" style="display:none">
+  <h1 id="guardTitle"></h1>
+  <p id="guardText"></p>
   <a href="login.html" class="btn btn-solid" id="guardBtn" style="display:none">تسجيل الدخول</a>
 </div>
 
@@ -72,11 +70,7 @@
   <main class="watch-page">
     <a href="#" id="backLink" class="watch-back-link">→ رجوع لكورساتك</a>
 
-    <div class="splash-loader" id="videoLoadingMsg">
-      <p class="splash-logo">الظلال</p>
-      <div class="splash-spinner"><span></span><span></span></div>
-      <p class="splash-text">جاري تحميل الدرس...</p>
-    </div>
+    <div class="splash-loader" id="videoLoadingMsg" style="display:none"></div>
     <p class="empty-msg" id="videoErrorMsg" style="display:none"></p>
 
     <div id="videoContent" style="display:none">
