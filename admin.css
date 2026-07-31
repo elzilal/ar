@@ -83,10 +83,19 @@
 }
 .stat-card{
   background: var(--cream-2);
-  border: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--olive) 30%, transparent);
   border-radius: var(--radius-md);
   padding: 18px;
   text-align: center;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s ease;
+}
+.stat-card:hover{ border-color: var(--coral); transform: translateY(-2px); }
+.stat-card.active{
+  border-color: var(--coral);
+  background: color-mix(in srgb, var(--coral) 10%, var(--cream-2));
+  box-shadow: 0 0 0 1px var(--coral) inset;
 }
 .stat-num{
   display: block;
@@ -102,26 +111,9 @@
   gap: 10px;
   margin-bottom: 24px;
   align-items: center;
-}
-.filter-btn{
-  padding: 9px 18px;
-  border-radius: 999px;
-  border: 1.5px solid color-mix(in srgb, var(--olive) 45%, transparent);
-  background: transparent;
-  color: var(--ink-soft);
-  font-weight: 600;
-  font-size: .88rem;
-  cursor: pointer;
-  transition: all .2s ease;
-}
-.filter-btn:hover{ border-color: var(--coral); color: var(--coral); }
-.filter-btn.active{
-  background: var(--coral);
-  border-color: var(--coral);
-  color: #fff;
+  justify-content: flex-end;
 }
 .refresh-btn{
-  margin-inline-start: auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -138,6 +130,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
 }
 .student-card{
   background: var(--cream-2);
@@ -147,20 +140,21 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
 }
 .student-card-top{
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 20px;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
 }
 .student-card-head{
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  flex-shrink: 0;
-  min-width: 150px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
 }
 .student-card-head h3{
   margin: 0;
@@ -180,13 +174,12 @@
 [data-theme="dark"] .status-approved{ color: #81c784; }
 .student-info-grid{
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
   padding: 14px;
   background: var(--cream);
   border-radius: var(--radius-sm);
-  flex: 1 1 380px;
-  min-width: 280px;
+  width: 100%;
 }
 .student-info-grid > div{ display: flex; flex-direction: column; gap: 3px; }
 .info-label{ font-size: .74rem; color: var(--ink-soft); font-weight: 600; }
@@ -196,6 +189,7 @@
   flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-end;
+  width: 100%;
 }
 .student-actions .btn{
   padding: 9px 20px;
