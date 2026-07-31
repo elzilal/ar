@@ -18,7 +18,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
 <div class="bg-pattern" aria-hidden="true"></div>
 
@@ -74,23 +74,16 @@
     <p class="empty-msg" id="videoErrorMsg" style="display:none"></p>
 
     <div id="videoContent" style="display:none">
-      <div class="watch-video-wrap" id="videoWrap">
+      <div class="watch-video-wrap">
         <iframe id="videoFrame" src="" title="فيديو الدرس" frameborder="0"
-          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-          referrerpolicy="no-referrer"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen></iframe>
-        <!-- طبقة شفافة فوق الفيديو: بتمنع الضغط المباشر على الـ iframe
-             (اللي ممكن يودي لفتح يوتيوب في تاب جديد أو نسخ اللينك من قايمة الزرار اليمين
-             الخاصة بيوتيوب نفسه) وبتسمح فقط بالتشغيل/الإيقاف من خلال كليك عادي بنمرره يدويًا. -->
-        <div class="video-shield" id="videoShield" oncontextmenu="return false;"></div>
-        <div class="video-watermark" id="videoWatermark" aria-hidden="true"></div>
       </div>
       <div class="watch-info">
         <h1 id="videoTitle"></h1>
         <span class="order-course-tag" id="videoCourseTag"></span>
         <p id="videoDetails"></p>
       </div>
-      <p class="watch-warning">⚠️ تسجيل أو مشاركة هذا الدرس مخالف لسياسة المنصة، وحسابك مربوط برقمك ويظهر أثناء المشاهدة.</p>
     </div>
   </main>
 
@@ -204,9 +197,6 @@ async function checkAuth(){
       currentStudentId = phone;
       document.getElementById('studentNameChip').textContent = student.studentName || 'الطالب';
 
-      // نص الـ Watermark: اسم الطالب + رقمه، بيتحرك بشكل عشوائي فوق الفيديو
-      setupWatermark(student.studentName || '', phone);
-
       const backUrl = PAGE_URL_BY_GRADE[String(student.grade)] || 'index.html';
       document.getElementById('backLink').href = backUrl;
 
@@ -261,13 +251,11 @@ document.getElementById('logoutBtn')?.addEventListener('click', async () => {
 // جلب بيانات الفيديو + التحقق إن الطالب فعلاً مشترك في الكورس
 // المرتبط بيه + عرضه + تسجيل نشاط المشاهدة
 // =========================================================
-// ملاحظة: youtube-nocookie.com بيرجع Error 153 مع بعض الفيديوهات
-// (خصوصًا لو فيها قيود embedding من صاحبها)، فرجعنا لـ youtube.com العادي.
 function youtubeEmbedUrl(url){
   if(!url) return '';
   const match = url.match(/(?:youtu\.be\/|v=|\/embed\/|\/shorts\/)([A-Za-z0-9_-]{6,})/);
   const id = match ? match[1] : null;
-  return id ? `https://www.youtube.com/embed/${id}?modestbranding=1&rel=0&controls=1&fs=1` : '';
+  return id ? `https://www.youtube.com/embed/${id}` : '';
 }
 
 async function loadVideo(student){
@@ -351,92 +339,11 @@ async function logActivity(videoId, videoTitle){
       .collection('activity').add({
         videoId,
         videoTitle,
-        watchedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        userAgent: navigator.userAgent
+        watchedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
   }catch(err){
     console.error('حصل خطأ في تسجيل النشاط:', err);
   }
-}
-
-// =========================================================
-// حماية إضافية: منع الزرار اليمين، منع اختصارات الديفلوبر تولز،
-// منع تحديد/نسخ النص، ومنع السحب على الفيديو مباشرة.
-// ملاحظة: دي طبقات تصعيب مش منع مطلق (أي حد متمرس هيقدر يتجاوزها)،
-// لكنها بتوقف الغالبية اللي بتاخد اللينك بسهولة.
-// =========================================================
-document.addEventListener('contextmenu', function(e){
-  e.preventDefault();
-  return false;
-});
-
-document.addEventListener('keydown', function(e){
-  const key = e.key ? e.key.toUpperCase() : '';
-  // F12
-  if(e.keyCode === 123){ e.preventDefault(); return false; }
-  // Ctrl+Shift+I / J / C (devtools)
-  if(e.ctrlKey && e.shiftKey && (key === 'I' || key === 'J' || key === 'C')){
-    e.preventDefault(); return false;
-  }
-  // Ctrl+U (view-source)
-  if(e.ctrlKey && key === 'U'){ e.preventDefault(); return false; }
-  // Ctrl+S (save page)
-  if(e.ctrlKey && key === 'S'){ e.preventDefault(); return false; }
-});
-
-document.addEventListener('selectstart', function(e){
-  // بنسمح بالتحديد جوه الحقول العادية بس (لو فيه)، بنمنعه في باقي الصفحة
-  const tag = e.target.tagName;
-  if(tag === 'INPUT' || tag === 'TEXTAREA') return true;
-  e.preventDefault();
-  return false;
-});
-
-document.addEventListener('dragstart', function(e){
-  e.preventDefault();
-  return false;
-});
-
-// كشف بسيط لفتح أدوات المطور (مش مضمون 100% لكن بيقلل الاستخدام العادي)
-(function devtoolsDetect(){
-  let threshold = 160;
-  let warned = false;
-  setInterval(function(){
-    const widthDiff = window.outerWidth - window.innerWidth;
-    const heightDiff = window.outerHeight - window.innerHeight;
-    if((widthDiff > threshold || heightDiff > threshold) && !warned){
-      warned = true;
-      const frame = document.getElementById('videoFrame');
-      if(frame) frame.src = '';
-      showKickedOverlay('تم إيقاف الفيديو لأسباب أمنية. أعد تحميل الصفحة للمتابعة.');
-    }
-  }, 1000);
-})();
-
-// =========================================================
-// الـ Watermark: بيحط اسم الطالب ورقمه فوق الفيديو وبيتحرك
-// كل شوية، عشان لو حد سجل سكرين/صورة الفيديو يبان مين اللي فتحه
-// =========================================================
-function setupWatermark(name, phone){
-  const wm = document.getElementById('videoWatermark');
-  if(!wm) return;
-  const label = `${name} • ${phone.slice(0, 3)}***${phone.slice(-2)}`;
-  wm.textContent = label;
-
-  function moveWatermark(){
-    const wrap = document.getElementById('videoWrap');
-    if(!wrap) return;
-    const maxX = wrap.clientWidth - wm.clientWidth - 10;
-    const maxY = wrap.clientHeight - wm.clientHeight - 10;
-    const x = Math.max(10, Math.floor(Math.random() * maxX));
-    const y = Math.max(10, Math.floor(Math.random() * maxY));
-    wm.style.left = x + 'px';
-    wm.style.top = y + 'px';
-  }
-
-  moveWatermark();
-  setInterval(moveWatermark, 4000);
-  window.addEventListener('resize', moveWatermark);
 }
 </script>
 </body>
