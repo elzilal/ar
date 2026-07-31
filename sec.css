@@ -401,7 +401,7 @@
   transition: opacity .45s ease, visibility .45s ease;
 }
 [data-theme="dark"] #appSplash{
-  background: var(--ink, #14100a);
+  background: #1a1410;
 }
 #appSplash.splash-hidden{
   opacity: 0;
@@ -409,8 +409,8 @@
   pointer-events: none;
 }
 #appSplash .splash-logo{
-  width: 48px;
-  height: 48px;
+  width: 39px;
+  height: 39px;
   object-fit: contain;
   animation: splashPulse 1.4s ease-in-out infinite;
 }
