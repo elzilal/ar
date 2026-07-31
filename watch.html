@@ -261,13 +261,13 @@ document.getElementById('logoutBtn')?.addEventListener('click', async () => {
 // جلب بيانات الفيديو + التحقق إن الطالب فعلاً مشترك في الكورس
 // المرتبط بيه + عرضه + تسجيل نشاط المشاهدة
 // =========================================================
-// نستخدم youtube-nocookie.com بدل youtube.com عشان يقلل التتبع
-// وميديش انطباع "دي صفحة يوتيوب عادية اضغط عليها هتاخد اللينك"
+// ملاحظة: youtube-nocookie.com بيرجع Error 153 مع بعض الفيديوهات
+// (خصوصًا لو فيها قيود embedding من صاحبها)، فرجعنا لـ youtube.com العادي.
 function youtubeEmbedUrl(url){
   if(!url) return '';
   const match = url.match(/(?:youtu\.be\/|v=|\/embed\/|\/shorts\/)([A-Za-z0-9_-]{6,})/);
   const id = match ? match[1] : null;
-  return id ? `https://www.youtube-nocookie.com/embed/${id}?modestbranding=1&rel=0&controls=1&disablekb=1&fs=1` : '';
+  return id ? `https://www.youtube.com/embed/${id}?modestbranding=1&rel=0&controls=1&fs=1` : '';
 }
 
 async function loadVideo(student){
