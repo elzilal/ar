@@ -409,8 +409,8 @@
   pointer-events: none;
 }
 #appSplash .splash-logo{
-  width: 60px;
-  height: 60px;
+  width: 100px;
+  height: 100px;
   object-fit: contain;
   animation: splashPulse 1.4s ease-in-out infinite;
 }
