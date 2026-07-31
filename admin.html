@@ -222,17 +222,19 @@ function renderStudents(){
   emptyMsg.style.display = 'none';
   list.innerHTML = filtered.map(s => `
     <div class="student-card" data-id="${s.id}">
-      <div class="student-card-head">
-        <h3>${escapeHtml(s.studentName || '—')}</h3>
-        <span class="status-badge status-${s.status}">${statusNames[s.status] || s.status}</span>
-      </div>
-      <div class="student-info-grid">
-        <div><span class="info-label">رقم الطالب</span><span class="info-value">${escapeHtml(s.studentPhone || s.id || '—')}</span></div>
-        <div><span class="info-label">رقم ولي الأمر</span><span class="info-value">${escapeHtml(s.parentPhone || '—')}</span></div>
-        <div><span class="info-label">الصف الدراسي</span><span class="info-value">${gradeNames[s.grade] || s.grade || '—'}</span></div>
-        <div><span class="info-label">المحافظة</span><span class="info-value">${escapeHtml(s.governorate || '—')}</span></div>
-        <div><span class="info-label">المدينة</span><span class="info-value">${escapeHtml(s.city || '—')}</span></div>
-        <div><span class="info-label">القرية / الحي</span><span class="info-value">${escapeHtml(s.village || '—')}</span></div>
+      <div class="student-card-top">
+        <div class="student-card-head">
+          <h3>${escapeHtml(s.studentName || '—')}</h3>
+          <span class="status-badge status-${s.status}">${statusNames[s.status] || s.status}</span>
+        </div>
+        <div class="student-info-grid">
+          <div><span class="info-label">رقم الطالب</span><span class="info-value">${escapeHtml(s.studentPhone || s.id || '—')}</span></div>
+          <div><span class="info-label">رقم ولي الأمر</span><span class="info-value">${escapeHtml(s.parentPhone || '—')}</span></div>
+          <div><span class="info-label">الصف الدراسي</span><span class="info-value">${gradeNames[s.grade] || s.grade || '—'}</span></div>
+          <div><span class="info-label">المحافظة</span><span class="info-value">${escapeHtml(s.governorate || '—')}</span></div>
+          <div><span class="info-label">المدينة</span><span class="info-value">${escapeHtml(s.city || '—')}</span></div>
+          <div><span class="info-label">القرية / الحي</span><span class="info-value">${escapeHtml(s.village || '—')}</span></div>
+        </div>
       </div>
       <div class="student-actions">
         ${s.status !== 'approved' ? `<button class="btn btn-solid approve-btn" data-id="${s.id}">قبول</button>` : ''}
