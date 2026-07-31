@@ -386,3 +386,46 @@
   box-sizing: border-box;
 }
 .sec-course-status .sec-cancel-btn:hover{ background: rgba(255,255,255,0.18); }
+
+/* ============ Splash Screen (شاشة البداية) ============ */
+#appSplash{
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  background: var(--cream);
+  transition: opacity .45s ease, visibility .45s ease;
+}
+[data-theme="dark"] #appSplash{
+  background: var(--ink, #14100a);
+}
+#appSplash.splash-hidden{
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+#appSplash .splash-logo{
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  animation: splashPulse 1.4s ease-in-out infinite;
+}
+#appSplash .splash-text{
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--maroon);
+  text-align: center;
+  padding: 0 20px;
+}
+[data-theme="dark"] #appSplash .splash-text{
+  color: var(--gold);
+}
+@keyframes splashPulse{
+  0%, 100%{ transform: scale(1); opacity: 1; }
+  50%{ transform: scale(0.88); opacity: .75; }
+}
