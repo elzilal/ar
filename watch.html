@@ -74,10 +74,12 @@
     <p class="empty-msg" id="videoErrorMsg" style="display:none"></p>
 
     <div id="videoContent" style="display:none">
-      <div class="watch-video-wrap">
+      <div class="watch-video-wrap" id="videoWrap">
         <iframe id="videoFrame" src="" title="فيديو الدرس" frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen></iframe>
+        <div class="watch-watermark" id="watchWatermark">—</div>
+        <button class="watch-fullscreen-btn" id="watchFsBtn" type="button">⛶ ملء الشاشة</button>
       </div>
       <div class="watch-info">
         <h1 id="videoTitle"></h1>
@@ -91,6 +93,7 @@
 
 <script src="firebase-config.js"></script>
 <script src="script.js"></script>
+<script src="watch-watermark.js"></script>
 <script>
 const accessGuard = document.getElementById('accessGuard');
 const pageContent = document.getElementById('pageContent');
@@ -322,6 +325,7 @@ async function loadVideo(student){
     loadingMsg.style.display = 'none';
     content.style.display = 'block';
 
+    startWatermark(currentStudent.studentName, currentStudentId);
     logActivity(videoId, video.title || 'فيديو');
 
   }catch(err){
