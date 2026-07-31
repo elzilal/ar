@@ -1,14 +1,8 @@
-/* =========================================================
-   صفحة إدارة الكورسات (courses.html)
-   تستخدم نفس أنماط admin.css الأساسية + إضافات هنا
-   ========================================================= */
-
 .courses-toolbar{
   display: flex;
   justify-content: flex-end;
   margin-bottom: 24px;
 }
-
 .course-admin-card{
   background: var(--cream-2);
   border: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
@@ -18,7 +12,6 @@
   gap: 16px;
   align-items: center;
 }
-
 .course-admin-thumb{
   width: 74px;
   height: 74px;
@@ -28,7 +21,6 @@
   border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
   flex-shrink: 0;
 }
-
 .course-admin-info{ flex: 1; min-width: 0; }
 .course-admin-info h3{
   margin: 0 0 6px;
@@ -58,7 +50,6 @@
   background: rgba(240,75,55,0.15);
   color: var(--coral-dark);
 }
-
 .course-admin-actions{
   display: flex;
   gap: 8px;
@@ -77,8 +68,6 @@
   border-radius: 50%;
 }
 .icon-btn svg{ width: 18px; height: 18px; }
-
-/* ============ نافذة إضافة/تعديل كورس ============ */
 .course-modal{
   display: none;
   position: fixed;
@@ -108,7 +97,6 @@
   text-align: center;
 }
 [data-theme="dark"] .course-modal-card h3{ color: var(--gold); }
-
 .course-form label{
   display: block;
   margin-bottom: 16px;
@@ -147,7 +135,6 @@
   margin-top: 6px;
 }
 .course-form-actions .btn{ flex: 1; }
-
 .course-locations-group{
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -184,11 +171,9 @@
   margin: -8px 0 16px;
 }
 .course-locations-error.show{ display: block; }
-
 @media (max-width: 480px){
   .course-locations-group{ grid-template-columns: 1fr; }
 }
-
 .course-active-toggle{
   display: flex;
   align-items: center;
@@ -197,7 +182,6 @@
   cursor: pointer;
 }
 .course-active-toggle input{ width: auto; }
-
 @media (max-width: 560px){
   .course-admin-card{ flex-wrap: wrap; }
   .course-admin-actions{ width: 100%; justify-content: flex-end; }
