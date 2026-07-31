@@ -1,7 +1,3 @@
-/* =========================================================
-   صفحة كورسات الطالب (sec1 / sec2 / sec3)
-   ========================================================= */
-
 .sec-header{
   background: color-mix(in srgb, var(--cream) 85%, transparent);
   backdrop-filter: blur(14px);
@@ -27,7 +23,6 @@
   color: var(--maroon);
 }
 [data-theme="dark"] .sec-header .logo-text{ color: var(--gold); }
-
 .sec-header-actions{ display:flex; align-items:center; gap:10px; }
 .student-name-chip{
   font-weight: 700;
@@ -38,8 +33,6 @@
   font-size: .9rem;
 }
 [data-theme="dark"] .student-name-chip{ color: var(--gold); background: rgba(238,219,123,0.12); }
-
-/* ============ صورة البروفايل الوهمية جمب الاسم ============ */
 .student-profile-chip{
   display: flex;
   align-items: center;
@@ -60,8 +53,6 @@
 }
 .student-avatar-mini svg{ width: 18px; height: 18px; }
 .student-profile-chip:hover .student-avatar-mini{ transform: scale(1.08); }
-
-/* ============ بار التابات ============ */
 .sec-tabs{
   max-width: 1100px;
   margin: 0 auto;
@@ -87,11 +78,8 @@
   border-color: var(--coral);
   color: #fff;
 }
-
 .sec-tab-panel{ display: none; }
 .sec-tab-panel.active{ display: block; }
-
-/* ============ كورس مفعّل: بلوك فيه عنوان + شبكة فيديوهات ============ */
 .enrolled-course-block{ margin-bottom: 44px; }
 .enrolled-course-title{
   font-family: var(--font-display);
@@ -102,13 +90,11 @@
   border-bottom: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
 }
 [data-theme="dark"] .enrolled-course-title{ color: var(--gold); }
-
 .videos-grid{
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 18px;
 }
-
 .video-thumb-card{
   display: flex;
   flex-direction: column;
@@ -159,8 +145,6 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
-/* ============ قايمة النشاط ============ */
 .activity-list{
   display: flex;
   flex-direction: column;
@@ -189,13 +173,11 @@
 [data-theme="dark"] .activity-icon{ color: var(--gold); background: rgba(180,187,121,0.15); }
 .activity-info h4{ margin: 0 0 3px; font-size: .92rem; color: var(--ink); }
 .activity-date{ font-size: .78rem; color: var(--ink-soft); }
-
 .sec-page{
   max-width: 1100px;
   margin: 0 auto;
   padding: 50px 6vw 90px;
 }
-
 .sec-page .section-head{ text-align: center; margin-bottom: 40px; }
 .sec-page .section-eyebrow{ color: var(--olive); font-weight: 700; margin: 0 0 8px; }
 .sec-page h1{
@@ -206,20 +188,16 @@
 }
 [data-theme="dark"] .sec-page h1{ color: var(--gold); }
 .sec-page .section-head > p{ color: var(--ink-soft); margin: 0; }
-
 .loading-msg, .empty-msg{
   color: var(--ink-soft);
   padding: 40px 20px;
   text-align: center;
 }
-
-/* ============ شبكة كروت الكورسات ============ */
 .sec-courses-grid{
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
 }
-
 .sec-course-card{
   background: var(--cream-2);
   border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
@@ -232,7 +210,6 @@
   position: relative;
   overflow: hidden;
 }
-
 .sec-course-card::before{
   content: '';
   position: absolute;
@@ -241,7 +218,6 @@
   background: radial-gradient(circle, rgba(238,219,123,0.3), transparent 70%);
   pointer-events: none;
 }
-
 .sec-course-img{
   width: 100%;
   height: 140px;
@@ -249,7 +225,6 @@
   border-radius: var(--radius-md);
   margin-bottom: 4px;
 }
-
 .sec-course-card h3{
   font-family: var(--font-display);
   font-size: 1.35rem;
@@ -257,7 +232,6 @@
   margin: 0;
 }
 [data-theme="dark"] .sec-course-card h3{ color: var(--gold); }
-
 .sec-course-price{
   display: flex;
   align-items: baseline;
@@ -269,11 +243,7 @@
   color: var(--coral);
 }
 .sec-course-price .currency{ color: var(--ink-soft); font-size: .9rem; }
-
-.sec-course-status{
-  margin-top: auto;
-}
-
+.sec-course-status{ margin-top: 4px; }
 .status-pill{
   display: inline-flex;
   align-items: center;
@@ -299,7 +269,6 @@
   background: rgba(240,75,55,0.15);
   color: var(--coral-dark);
 }
-
 .sec-enroll-btn{
   display: block;
   width: 100%;
@@ -315,7 +284,6 @@
   transform: translateY(-2px);
   box-shadow: 0 12px 24px -10px rgba(240,75,55,0.5);
 }
-
 .sec-cancel-btn{
   display: block;
   width: 100%;
@@ -331,7 +299,6 @@
   transition: background .2s ease;
 }
 .sec-cancel-btn:hover{ background: rgba(240,75,55,0.08); }
-
 .sec-logout-wrap{
   display: flex;
   justify-content: center;
@@ -345,8 +312,6 @@
   opacity: .8;
 }
 .sec-logout-wrap .btn:hover{ opacity: 1; }
-
-/* ============ نافذة الوصول المرفوض ============ */
 .access-guard{
   max-width: 480px;
   margin: 90px auto;
@@ -363,12 +328,6 @@
 }
 [data-theme="dark"] .access-guard h1{ color: var(--gold); }
 .access-guard p{ color: var(--ink-soft); margin: 0 0 24px; }
-
-/* ============ حالة الاشتراك جوه كارت الكورس (نفس شكل index.html) ============
-   الكارت بقى بنفس تصميم الصفحة الرئيسية: صورة خلفية كاملة + تعتيم تدريجي
-   أسود، فالعناصر دي لازم ألوانها تتناسب مع خلفية غامقة بدل الفاتحة. */
-.sec-course-status{ margin-top: 4px; }
-
 .sec-course-status .status-pill{
   display: inline-flex;
   align-items: center;
@@ -394,7 +353,6 @@
   background: rgba(240,75,55,0.9);
   color: #fff;
 }
-
 .sec-course-status .sec-enroll-btn{
   display: block;
   width: 100%;
@@ -412,7 +370,6 @@
   transform: translateY(-2px);
   box-shadow: 0 10px 20px -8px rgba(0,0,0,0.5);
 }
-
 .sec-course-status .sec-cancel-btn{
   display: block;
   width: 100%;
