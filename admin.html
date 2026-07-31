@@ -18,10 +18,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-
 <div class="bg-pattern" aria-hidden="true"></div>
-
-<!-- ============ شاشة الدخول بالباسورد ============ -->
 <div class="admin-gate" id="adminGate">
   <div class="admin-gate-card">
     <span class="logo-icon" aria-hidden="true">
@@ -40,10 +37,7 @@
     <p class="gate-error" id="gateError">كلمة المرور غير صحيحة</p>
   </div>
 </div>
-
-<!-- ============ لوحة التحكم نفسها ============ -->
 <div class="admin-panel" id="adminPanel">
-
   <header class="admin-header">
     <div class="admin-header-inner">
       <a href="index.html" class="logo">
@@ -82,10 +76,7 @@
       </div>
     </div>
   </header>
-
   <main class="admin-main">
-
-    <!-- ============ إحصائيات سريعة ============ -->
     <div class="stats-row">
       <div class="stat-card">
         <span class="stat-num" id="statPending">0</span>
@@ -103,9 +94,6 @@
         <span class="stat-num" id="statTotal">0</span>
         <span class="stat-label">الإجمالي</span>
       </div>
-    </div>
-
-    <!-- ============ فلاتر ============ -->
     <div class="filters-row">
       <button class="filter-btn active" data-filter="pending">قيد المراجعة</button>
       <button class="filter-btn" data-filter="approved">مقبول</button>
@@ -118,18 +106,11 @@
         تحديث
       </button>
     </div>
-
-    <!-- ============ حالة التحميل / الفراغ ============ -->
     <p class="loading-msg" id="loadingMsg">جاري تحميل بيانات الطلاب...</p>
     <p class="empty-msg" id="emptyMsg" style="display:none">مفيش أي طلبات في القسم ده حاليًا</p>
-
-    <!-- ============ قائمة الطلاب ============ -->
     <div class="students-list" id="studentsList"></div>
-
   </main>
 </div>
-
-<!-- ============ نافذة تأكيد الرفض ============ -->
 <div class="confirm-modal" id="confirmModal">
   <div class="confirm-modal-card">
     <h3>متأكد إنك عايز ترفض الطلب ده؟</h3>
@@ -140,8 +121,6 @@
     </div>
   </div>
 </div>
-
-<!-- ============ نافذة تأكيد الحذف النهائي ============ -->
 <div class="confirm-modal" id="deleteModal">
   <div class="confirm-modal-card">
     <h3>متأكد إنك عايز تحذف الطالب ده نهائيًا؟</h3>
@@ -152,29 +131,22 @@
     </div>
   </div>
 </div>
-
 <script src="firebase-config.js"></script>
 <script src="script.js"></script>
 <script>
-// =========================================================
-// تسجيل دخول حقيقي عبر Firebase Authentication
-// =========================================================
 const adminGate = document.getElementById('adminGate');
 const adminPanel = document.getElementById('adminPanel');
 const gateForm = document.getElementById('gateForm');
 const gateError = document.getElementById('gateError');
-
 function unlockAdmin(){
   adminGate.style.display = 'none';
   adminPanel.style.display = 'block';
   loadStudents();
 }
-
 function lockAdmin(){
   adminPanel.style.display = 'none';
   adminGate.style.display = 'flex';
 }
-
 auth.onAuthStateChanged(async (user) => {
   if(user && user.email && !user.email.endsWith('@elzilal-student.app')){
     try{ await user.getIdToken(true); }catch(e){ console.error(e); }
@@ -184,17 +156,14 @@ auth.onAuthStateChanged(async (user) => {
     lockAdmin();
   }
 });
-
 gateForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = document.getElementById('adminEmailInput').value;
   const password = document.getElementById('adminPasswordInput').value;
   const submitBtn = gateForm.querySelector('button[type="submit"]');
-
   submitBtn.disabled = true;
   submitBtn.textContent = 'جاري الدخول...';
   gateError.classList.remove('show');
-
   try{
     await auth.signInWithEmailAndPassword(email, password);
   }catch(err){
@@ -206,27 +175,18 @@ gateForm.addEventListener('submit', async (e) => {
     submitBtn.textContent = 'دخول';
   }
 });
-
 document.getElementById('logoutBtn').addEventListener('click', () => {
   auth.signOut();
 });
-
-// =========================================================
-// تحميل وعرض بيانات الطلاب
-// =========================================================
 let allStudents = [];
 let currentFilter = 'pending';
-
 const gradeNames = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
 const statusNames = { pending: 'قيد المراجعة', approved: 'مقبول', rejected: 'مرفوض' };
-
 async function loadStudents(){
   document.getElementById('loadingMsg').style.display = 'block';
   document.getElementById('emptyMsg').style.display = 'none';
   document.getElementById('studentsList').innerHTML = '';
-
   try{
-    // بدون orderBy لتفادي الحاجة لـ composite index، ونرتب في الواجهة
     const snap = await db.collection('students').get();
     allStudents = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     allStudents.sort((a, b) => {
@@ -234,7 +194,6 @@ async function loadStudents(){
       const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
       return tb - ta;
     });
-
     updateStats();
     renderStudents();
   }catch(err){
@@ -242,30 +201,25 @@ async function loadStudents(){
     document.getElementById('loadingMsg').textContent = 'حصل خطأ في تحميل البيانات: ' + err.message;
   }
 }
-
 function updateStats(){
   document.getElementById('statPending').textContent = allStudents.filter(s => s.status === 'pending').length;
   document.getElementById('statApproved').textContent = allStudents.filter(s => s.status === 'approved').length;
   document.getElementById('statRejected').textContent = allStudents.filter(s => s.status === 'rejected').length;
   document.getElementById('statTotal').textContent = allStudents.length;
 }
-
 function renderStudents(){
   document.getElementById('loadingMsg').style.display = 'none';
   const list = document.getElementById('studentsList');
   const emptyMsg = document.getElementById('emptyMsg');
-
   const filtered = currentFilter === 'all'
     ? allStudents
     : allStudents.filter(s => s.status === currentFilter);
-
   if(filtered.length === 0){
     list.innerHTML = '';
     emptyMsg.style.display = 'block';
     return;
   }
   emptyMsg.style.display = 'none';
-
   list.innerHTML = filtered.map(s => `
     <div class="student-card" data-id="${s.id}">
       <div class="student-card-head">
@@ -288,7 +242,6 @@ function renderStudents(){
       </div>
     </div>
   `).join('');
-
   list.querySelectorAll('.approve-btn').forEach(btn => {
     btn.addEventListener('click', () => updateStudentStatus(btn.dataset.id, 'approved'));
   });
@@ -302,17 +255,14 @@ function renderStudents(){
     btn.addEventListener('click', () => openDeleteModal(btn.dataset.id));
   });
 }
-
 function escapeHtml(str){
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
-
 async function updateStudentStatus(id, newStatus, isRetry){
   try{
     await db.collection('students').doc(id).update({ status: newStatus });
-
     const student = allStudents.find(s => String(s.id) === String(id));
     if(student) student.status = newStatus;
     updateStats();
@@ -322,17 +272,15 @@ async function updateStudentStatus(id, newStatus, isRetry){
       try{
         await auth.currentUser.getIdToken(true);
         return updateStudentStatus(id, newStatus, true);
-      }catch(e){ /* تجاهل */ }
+      }catch(e){}
     }
     console.error(err);
     alert('حصل خطأ أثناء تحديث حالة الطالب: ' + err.message);
   }
 }
-
 async function deleteStudent(id, isRetry){
   try{
     await db.collection('students').doc(id).delete();
-
     allStudents = allStudents.filter(s => String(s.id) !== String(id));
     updateStats();
     renderStudents();
@@ -341,19 +289,14 @@ async function deleteStudent(id, isRetry){
       try{
         await auth.currentUser.getIdToken(true);
         return deleteStudent(id, true);
-      }catch(e){ /* تجاهل */ }
+      }catch(e){}
     }
     console.error(err);
     alert('حصل خطأ أثناء حذف الطالب: ' + err.message);
   }
 }
-
-// =========================================================
-// نافذة تأكيد الرفض
-// =========================================================
 let pendingRejectId = null;
 const confirmModal = document.getElementById('confirmModal');
-
 function openConfirmModal(id){
   pendingRejectId = id;
   confirmModal.classList.add('active');
@@ -370,13 +313,8 @@ document.getElementById('confirmOk').addEventListener('click', () => {
 confirmModal.addEventListener('click', (e) => {
   if(e.target === confirmModal) confirmModal.classList.remove('active');
 });
-
-// =========================================================
-// نافذة تأكيد الحذف النهائي
-// =========================================================
 let pendingDeleteId = null;
 const deleteModal = document.getElementById('deleteModal');
-
 function openDeleteModal(id){
   pendingDeleteId = id;
   deleteModal.classList.add('active');
@@ -393,10 +331,6 @@ document.getElementById('deleteOk').addEventListener('click', () => {
 deleteModal.addEventListener('click', (e) => {
   if(e.target === deleteModal) deleteModal.classList.remove('active');
 });
-
-// =========================================================
-// الفلاتر وزرار التحديث
-// =========================================================
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -405,7 +339,6 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     renderStudents();
   });
 });
-
 document.getElementById('refreshBtn').addEventListener('click', loadStudents);
 </script>
 </body>
