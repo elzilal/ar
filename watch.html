@@ -22,10 +22,12 @@
 
 <div class="bg-pattern" aria-hidden="true"></div>
 
-<!-- ============ حارس الوصول ============ -->
-<div class="access-guard" id="accessGuard" style="display:block">
-  <h1 id="guardTitle">جاري التحميل...</h1>
-  <p id="guardText"></p>
+<!-- ============ حارس الوصول (Splash Screen) ============ -->
+<div class="access-guard splash-loader" id="accessGuard" style="display:flex">
+  <p class="splash-logo">الظلال</p>
+  <div class="splash-spinner"><span></span><span></span></div>
+  <h1 class="splash-text" id="guardTitle">جاري التحميل...</h1>
+  <p class="splash-text" id="guardText"></p>
   <a href="login.html" class="btn btn-solid" id="guardBtn" style="display:none">تسجيل الدخول</a>
 </div>
 
@@ -70,7 +72,11 @@
   <main class="watch-page">
     <a href="#" id="backLink" class="watch-back-link">→ رجوع لكورساتك</a>
 
-    <p class="loading-msg" id="videoLoadingMsg">جاري تحميل الدرس...</p>
+    <div class="splash-loader" id="videoLoadingMsg">
+      <p class="splash-logo">الظلال</p>
+      <div class="splash-spinner"><span></span><span></span></div>
+      <p class="splash-text">جاري تحميل الدرس...</p>
+    </div>
     <p class="empty-msg" id="videoErrorMsg" style="display:none"></p>
 
     <div id="videoContent" style="display:none">
@@ -103,7 +109,7 @@ const guardBtn = document.getElementById('guardBtn');
 
 function showGuard(title, text, showLoginBtn){
   pageContent.style.display = 'none';
-  accessGuard.style.display = 'block';
+  accessGuard.style.display = 'flex';
   guardTitle.textContent = title;
   guardText.textContent = text;
   guardBtn.style.display = showLoginBtn ? 'inline-block' : 'none';
