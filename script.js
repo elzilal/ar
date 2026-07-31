@@ -1,47 +1,40 @@
-/* =========================================================
-   الظلال — script.js
-   ========================================================= */
-
-/* ---------------- الوضع الفاتح / الغامق ---------------- */
-(function initTheme(){
+(function initTheme() {
   const root = document.documentElement;
   const themeToggle = document.getElementById('themeToggle');
-
   const saved = localStorage.getItem('alzilal-theme');
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const initial = saved || (prefersDark ? 'dark' : 'light');
+  const initial = saved || (prefersDark? 'dark' : 'light');
 
   applyTheme(initial);
 
-  if(themeToggle){
+  if (themeToggle) {
     themeToggle.addEventListener('click', () => {
-      const current = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-      const next = current === 'dark' ? 'light' : 'dark';
+      const current = root.getAttribute('data-theme') === 'dark'? 'dark' : 'light';
+      const next = current === 'dark'? 'light' : 'dark';
       applyTheme(next);
       localStorage.setItem('alzilal-theme', next);
     });
   }
 
-  function applyTheme(mode){
-    if(mode === 'dark'){
+  function applyTheme(mode) {
+    if (mode === 'dark') {
       root.setAttribute('data-theme', 'dark');
-      if(themeToggle) themeToggle.setAttribute('aria-pressed', 'true');
-    }else{
+      if (themeToggle) themeToggle.setAttribute('aria-pressed', 'true');
+    } else {
       root.removeAttribute('data-theme');
-      if(themeToggle) themeToggle.setAttribute('aria-pressed', 'false');
+      if (themeToggle) themeToggle.setAttribute('aria-pressed', 'false');
     }
   }
 })();
 
-/* ---------------- قائمة الموبايل ---------------- */
-(function initMobileMenu(){
+(function initMobileMenu() {
   const menuToggle = document.getElementById('menuToggle');
   const mobileMenu = document.getElementById('mobileMenu');
-  if(!menuToggle || !mobileMenu) return;
+  if (!menuToggle ||!mobileMenu) return;
 
   menuToggle.addEventListener('click', () => {
     const isOpen = mobileMenu.classList.toggle('open');
-    menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    menuToggle.setAttribute('aria-expanded', isOpen? 'true' : 'false');
   });
 
   mobileMenu.querySelectorAll('a').forEach(link => {
@@ -52,15 +45,14 @@
   });
 })();
 
-/* ---------------- تأثير الهيدر عند السكرول ---------------- */
-(function initHeaderScroll(){
+(function initHeaderScroll() {
   const header = document.getElementById('siteHeader');
-  if(!header) return;
+  if (!header) return;
 
-  function onScroll(){
-    if(window.scrollY > 12){
+  function onScroll() {
+    if (window.scrollY > 12) {
       header.classList.add('scrolled');
-    }else{
+    } else {
       header.classList.remove('scrolled');
     }
   }
@@ -68,87 +60,75 @@
   window.addEventListener('scroll', onScroll, { passive: true });
 })();
 
-/* ---------------- السنة في الفوتر ---------------- */
-(function initFooterYear(){
+(function initFooterYear() {
   const yearEl = document.getElementById('year');
-  if(yearEl) yearEl.textContent = new Date().getFullYear();
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
 })();
 
-/* ---------------- تحويل الطالب المسجّل دخول تلقائيًا من الصفحة الرئيسية لصفحته ----------------
-   تم إيقاف الميزة دي تمامًا بناءً على طلب صاحب الموقع: صفحة index.html
-   لازم تفضل تفتح عادي لأي زائر (حتى لو مسجل دخول وعنده جلسة نشطة) من
-   غير أي تحقق أو تحويل تلقائي. الدالة اتسابت هنا فاضية (بترجع فورًا)
-   بدل ما تتمسح تمامًا، عشان لو حبينا نرجعها تاني في المستقبل يبقى سهل.
-   ========================================================= */
-(function redirectApprovedStudentFromHome(){
-  return; // الميزة متوقفة عمدًا — index.html من غير أي تحقق تلقائي
+(function redirectApprovedStudentFromHome() {
+  return;
 })();
 
-/* ---------------- تحميل بيانات الصفحة الرئيسية من data.json + الكورسات من Firestore ---------------- */
-(function loadHomeData(){
+(function loadHomeData() {
   const coursesGrid = document.getElementById('coursesGrid');
   const teacherBio = document.getElementById('teacherBio');
   const socialLinks = document.getElementById('socialLinks');
 
-  // نحمّل الداتا بس في الصفحات اللي محتاجاها فعليًا
-  if(!coursesGrid && !teacherBio && !document.getElementById('whyUsGrid')) return;
+  if (!coursesGrid &&!teacherBio &&!document.getElementById('whyUsGrid')) return;
 
-  // نفس الحماية: متحملش كورسات "الصفحة الرئيسية" (location == 'index')
-  // على صفحات sec*.html حتى لو فيها عنصر #coursesGrid.
   const currentPage = window.location.pathname.split('/').pop();
   const isHomePage = currentPage === '' || currentPage === 'index.html';
 
   fetch('data.json')
-    .then(res => res.json())
-    .then(data => {
+   .then(res => res.json())
+   .then(data => {
       renderTeacher(data.teacher);
       renderWhyUs(data.whyUs);
       renderSocial(data.social);
     })
-    .catch(err => console.error('حصل خطأ في تحميل بيانات الصفحة:', err));
+   .catch(err => console.error(err));
 
-  // الكورسات بتتحمل من Firestore (مش data.json) عشان تتضاف/تتعدل من لوحة الإدارة courses.html
   const gradeLabels = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
 
-  function loadCoursesFromFirestore(){
-    if(!coursesGrid || !isHomePage) return;
-    if(typeof db === 'undefined'){
+  function loadCoursesFromFirestore() {
+    if (!coursesGrid ||!isHomePage) return;
+    if (typeof db === 'undefined') {
       coursesGrid.innerHTML = '<p class="loading-msg">تعذر تحميل الكورسات حاليًا</p>';
       return;
     }
     db.collection('courses')
-      .where('active', '==', true)
-      .get()
-      .then(snap => {
+     .where('active', '==', true)
+     .get()
+     .then(snap => {
         const courses = snap.docs
-          .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(c => {
-            const locs = Array.isArray(c.locations) ? c.locations : (c.location ? [c.location] : []);
+         .map(doc => ({ id: doc.id,...doc.data() }))
+         .filter(c => {
+            const locs = Array.isArray(c.locations)? c.locations : (c.location? [c.location] : []);
             return locs.includes('index');
           });
         renderCourses(courses);
       })
-      .catch(err => {
-        console.error('حصل خطأ في تحميل الكورسات:', err);
+     .catch(err => {
+        console.error(err);
         coursesGrid.innerHTML = '<p class="loading-msg">تعذر تحميل الكورسات حاليًا</p>';
       });
   }
   loadCoursesFromFirestore();
 
-  function renderCourses(courses){
-    if(!coursesGrid || !Array.isArray(courses)) return;
-    if(courses.length === 0){
+  function renderCourses(courses) {
+    if (!coursesGrid ||!Array.isArray(courses)) return;
+    if (courses.length === 0) {
       coursesGrid.innerHTML = '<p class="empty-msg">لا توجد كورسات متاحة حاليًا</p>';
       return;
     }
     coursesGrid.innerHTML = courses.map(c => `
       <div class="course-card">
-        ${c.image ? `<img src="${escapeHtml(c.image)}" alt="${escapeHtml(c.title || '')}" class="course-card-img" onerror="this.style.display='none'">` : ''}
+        ${c.image? `<img src="${escapeHtml(c.image)}" alt="${escapeHtml(c.title || '')}" class="course-card-img" onerror="this.style.display='none'">` : ''}
         <div class="course-card-body">
           <span class="course-grade">${escapeHtml(gradeLabels[c.grade] || '')}</span>
           <h3>${escapeHtml(c.title || '')}</h3>
           <div class="course-price">
-            <span class="amount">${escapeHtml(String(c.price ?? ''))}</span>
+            <span class="amount">${escapeHtml(String(c.price?? ''))}</span>
             <span class="currency">${escapeHtml(c.currency || 'جنيه')}</span>
           </div>
           <a href="enroll.html?course=${encodeURIComponent(c.id)}" class="course-btn" data-course-id="${escapeHtml(c.id)}">اشترك الآن</a>
@@ -157,34 +137,34 @@
     `).join('');
   }
 
-  function renderTeacher(teacher){
-    if(!teacher) return;
+  function renderTeacher(teacher) {
+    if (!teacher) return;
     const nameEl = document.getElementById('teacherName');
     const roleEl = document.getElementById('teacherRole');
     const highlightEl = document.getElementById('teacherHighlight');
 
-    if(nameEl && teacher.name) nameEl.textContent = teacher.name;
-    if(roleEl && teacher.role) roleEl.textContent = teacher.role;
-    if(highlightEl && teacher.highlight) highlightEl.textContent = teacher.highlight;
+    if (nameEl && teacher.name) nameEl.textContent = teacher.name;
+    if (roleEl && teacher.role) roleEl.textContent = teacher.role;
+    if (highlightEl && teacher.highlight) highlightEl.textContent = teacher.highlight;
 
-    if(teacherBio && Array.isArray(teacher.bio)){
+    if (teacherBio && Array.isArray(teacher.bio)) {
       teacherBio.innerHTML = teacher.bio.map(p => `<p>${escapeHtml(p)}</p>`).join('');
     }
   }
 
-  function renderWhyUs(whyUs){
+  function renderWhyUs(whyUs) {
     const whyUsGrid = document.getElementById('whyUsGrid');
-    if(!whyUsGrid || !whyUs) return;
+    if (!whyUsGrid ||!whyUs) return;
 
     const eyebrowEl = document.getElementById('whyUsEyebrow');
     const titleEl = document.getElementById('whyUsTitle');
     const subtitleEl = document.getElementById('whyUsSubtitle');
 
-    if(eyebrowEl && whyUs.eyebrow) eyebrowEl.textContent = whyUs.eyebrow;
-    if(titleEl && whyUs.title) titleEl.textContent = whyUs.title;
-    if(subtitleEl && whyUs.subtitle) subtitleEl.textContent = whyUs.subtitle;
+    if (eyebrowEl && whyUs.eyebrow) eyebrowEl.textContent = whyUs.eyebrow;
+    if (titleEl && whyUs.title) titleEl.textContent = whyUs.title;
+    if (subtitleEl && whyUs.subtitle) subtitleEl.textContent = whyUs.subtitle;
 
-    if(Array.isArray(whyUs.features)){
+    if (Array.isArray(whyUs.features)) {
       whyUsGrid.innerHTML = whyUs.features.map(f => `
         <div class="why-card">
           <span class="why-icon" aria-hidden="true">${getIcon(f.icon)}</span>
@@ -195,21 +175,21 @@
     }
   }
 
-  function renderSocial(social){
-    if(!socialLinks || !social) return;
+  function renderSocial(social) {
+    if (!socialLinks ||!social) return;
     socialLinks.querySelectorAll('[data-social]').forEach(link => {
       const key = link.dataset.social;
-      if(social[key]) link.setAttribute('href', social[key]);
+      if (social[key]) link.setAttribute('href', social[key]);
     });
   }
 
-  function escapeHtml(str){
+  function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
   }
 
-  function getIcon(name){
+  function getIcon(name) {
     const icons = {
       commitment: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>',
       experience: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l2.6 6.6L21 9.2l-5 4.6L17.4 21 12 17.3 6.6 21 8 13.8l-5-4.6 6.4-.6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
