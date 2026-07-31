@@ -145,6 +145,11 @@
   border-radius: var(--radius-md);
   padding: 20px;
   display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.student-card-top{
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 20px;
@@ -190,16 +195,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  flex-shrink: 0;
-  margin-inline-start: auto;
+  justify-content: flex-end;
 }
 .student-actions .btn{
   padding: 9px 20px;
   font-size: .85rem;
 }
 @media (max-width: 900px){
-  .student-card{ flex-direction: column; align-items: stretch; }
-  .student-actions{ margin-inline-start: 0; justify-content: flex-start; }
+  .student-actions{ justify-content: flex-start; }
 }
 .approve-btn{ background: linear-gradient(135deg, #4caf50, #388e3c); box-shadow: none; }
 .approve-btn:hover{ transform: translateY(-2px); }
