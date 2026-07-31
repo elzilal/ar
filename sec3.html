@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>كورسات تالتة ثانوي | الظلال</title>
+<script>
+  (function(){
+    var saved = localStorage.getItem('alzilal-theme');
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if(saved === 'dark' || (!saved && prefersDark)){
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  })();
+</script>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
@@ -25,6 +34,19 @@
 </style>
 </head>
 <body>
+
+<!-- ============ شاشة البداية (Splash) ============ -->
+<div id="appSplash">
+  <img src="splash-white.png" alt="الظلال" class="splash-logo" id="splashLogo">
+  <p class="splash-text">ثواني هتبطل شد حيلك عاوزينك تشرفنا😎❤</p>
+</div>
+<script>
+  (function(){
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var logo = document.getElementById('splashLogo');
+    if(logo) logo.src = isDark ? 'splash-black.png' : 'splash-white.png';
+  })();
+</script>
 
 <div class="bg-pattern" aria-hidden="true"></div>
 
@@ -155,7 +177,13 @@ const guardTitle = document.getElementById('guardTitle');
 const guardText = document.getElementById('guardText');
 const guardBtn = document.getElementById('guardBtn');
 
+function hideSplash(){
+  const splash = document.getElementById('appSplash');
+  if(splash) splash.classList.add('splash-hidden');
+}
+
 function showGuard(title, text, showLoginBtn){
+  hideSplash();
   pageContent.style.display = 'none';
   accessGuard.style.display = 'block';
   guardTitle.textContent = title;
@@ -283,6 +311,7 @@ async function checkAuth(){
       currentStudentId = phone;
       localStorage.setItem('alzilal-current-student', phone);
       document.getElementById('studentNameChip').textContent = student.studentName || 'الطالب';
+      hideSplash();
       accessGuard.style.display = 'none';
       pageContent.style.display = 'block';
       loadCourses();
