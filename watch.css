@@ -1,0 +1,57 @@
+/* =========================================================
+   صفحة مشاهدة الدرس (watch.html)
+   تستخدم نفس أنماط sec.css + إضافات هنا
+   ========================================================= */
+
+.watch-page{
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 34px 6vw 90px;
+}
+
+.watch-back-link{
+  display: inline-block;
+  margin-bottom: 20px;
+  color: var(--coral);
+  font-weight: 700;
+  font-size: .9rem;
+}
+.watch-back-link:hover{ text-decoration: underline; }
+
+.watch-video-wrap{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  background: #000;
+}
+.watch-video-wrap iframe{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.watch-info{
+  margin-top: 24px;
+  background: var(--cream-2);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  border-radius: var(--radius-md);
+  padding: 22px 24px;
+}
+.watch-info h1{
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--maroon);
+  margin: 0 0 12px;
+}
+[data-theme="dark"] .watch-info h1{ color: var(--gold); }
+.watch-info p{
+  margin: 14px 0 0;
+  color: var(--ink-soft);
+  line-height: 1.8;
+  font-size: .92rem;
+}

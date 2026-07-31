@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مشاهدة الدرس | الظلال</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="sec.css">
+<link rel="stylesheet" href="watch.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<!-- ============ حارس الوصول ============ -->
+<div class="access-guard" id="accessGuard" style="display:block">
+  <h1 id="guardTitle">جاري التحميل...</h1>
+  <p id="guardText"></p>
+  <a href="login.html" class="btn btn-solid" id="guardBtn" style="display:none">تسجيل الدخول</a>
+</div>
+
+<!-- ============ الصفحة الفعلية ============ -->
+<div id="pageContent" style="display:none">
+
+  <header class="sec-header">
+    <div class="sec-header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <circle cx="50" cy="50" r="48" fill="var(--gold)"/>
+            <text x="50" y="67" text-anchor="middle" font-family="'Aref Ruqaa', serif" font-size="54" font-weight="700" fill="var(--maroon)">ظ</text>
+          </svg>
+        </span>
+        <span class="logo-text">الظلال</span>
+      </a>
+      <div class="sec-header-actions">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="تبديل الوضع الليلي والنهاري" aria-pressed="false">
+          <span class="theme-toggle-track">
+            <span class="theme-toggle-thumb">
+              <svg class="icon-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M12 1.5V4"/><path d="M12 20v2.5"/>
+                  <path d="M4.2 4.2L6 6"/><path d="M18 18l1.8 1.8"/>
+                  <path d="M1.5 12H4"/><path d="M20 12h2.5"/>
+                  <path d="M4.2 19.8L6 18"/><path d="M18 6l1.8-1.8"/>
+                </g>
+              </svg>
+            </span>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" fill="currentColor"/>
+            </svg>
+          </span>
+        </button>
+        <span class="student-name-chip" id="studentNameChip">—</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="watch-page">
+    <a href="#" id="backLink" class="watch-back-link">→ رجوع لكورساتك</a>
+
+    <p class="loading-msg" id="videoLoadingMsg">جاري تحميل الدرس...</p>
+    <p class="empty-msg" id="videoErrorMsg" style="display:none"></p>
+
+    <div id="videoContent" style="display:none">
+      <div class="watch-video-wrap">
+        <iframe id="videoFrame" src="" title="فيديو الدرس" frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+      </div>
+      <div class="watch-info">
+        <h1 id="videoTitle"></h1>
+        <span class="order-course-tag" id="videoCourseTag"></span>
+        <p id="videoDetails"></p>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script src="firebase-config.js"></script>
+<script src="script.js"></script>
+<script>
+const accessGuard = document.getElementById('accessGuard');
+const pageContent = document.getElementById('pageContent');
+const guardTitle = document.getElementById('guardTitle');
+const guardText = document.getElementById('guardText');
+const guardBtn = document.getElementById('guardBtn');
+
+function showGuard(title, text, showLoginBtn){
+  pageContent.style.display = 'none';
+  accessGuard.style.display = 'block';
+  guardTitle.textContent = title;
+  guardText.textContent = text;
+  guardBtn.style.display = showLoginBtn ? 'inline-block' : 'none';
+}
+
+function showKickedOverlay(message){
+  if(document.querySelector('.session-kicked-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'session-kicked-overlay';
+  overlay.innerHTML = `
+    <div>
+      <h2 style="margin-bottom:14px">${message}</h2>
+      <a href="login.html" class="btn btn-solid">تسجيل الدخول</a>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+let currentStudent = null;
+let currentStudentId = null;
+let studentDocUnsubscribe = null;
+let settled = false;
+
+const PAGE_URL_BY_GRADE = { "1": "sec1.html", "2": "sec2.html", "3": "sec3.html" };
+
+async function checkAuth(){
+  try{
+    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  }catch(e){ console.error('persistence error', e); }
+
+  auth.onAuthStateChanged(async (user) => {
+    if(settled) return;
+
+    if(!user){
+      settled = true;
+      showGuard('لازم تسجل دخول الأول', 'الصفحة دي متاحة للطلاب المسجلين والمقبولين فقط.', true);
+      return;
+    }
+
+    if(!user.email){
+      try{
+        await user.reload();
+        user = auth.currentUser;
+      }catch(e){ console.error(e); }
+    }
+
+    if(!user || !user.email) return;
+
+    settled = true;
+
+    if(!user.email.endsWith('@elzilal-student.app')){
+      showGuard('الوصول غير مسموح', 'الصفحة دي مخصصة لحسابات الطلاب فقط.', false);
+      return;
+    }
+
+    const phone = user.email.replace('@elzilal-student.app', '');
+
+    try{
+      const snap = await db.collection('students').doc(phone).get();
+      if(!snap.exists){
+        showGuard('حسابك غير موجود', 'حصل خطأ في بيانات حسابك، تواصل مع الإدارة.', false);
+        return;
+      }
+
+      const student = snap.data();
+
+      if(student.status !== 'approved'){
+        showGuard('حسابك لسه قيد المراجعة', 'هيتفعّل بعد ما القسم يوافق عليه، حاول تاني بعدين.', false);
+        return;
+      }
+
+      // =========================================================
+      // نفس نظام الجلسة المستخدم في صفحات sec
+      // =========================================================
+      let mySessionId = localStorage.getItem('alzilal-session-id');
+
+      if(!mySessionId){
+        if(student.activeSessionId){
+          mySessionId = student.activeSessionId;
+          localStorage.setItem('alzilal-session-id', mySessionId);
+        }else{
+          const newId = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
+          await db.collection('students').doc(phone).update({ activeSessionId: newId });
+          mySessionId = newId;
+          localStorage.setItem('alzilal-session-id', newId);
+        }
+      }else if(student.activeSessionId && student.activeSessionId !== mySessionId){
+        localStorage.removeItem('alzilal-session-id');
+        localStorage.removeItem('alzilal-current-student');
+        auth.signOut().then(() => showKickedOverlay('تم تسجيل خروجك بسبب دخول شخص آخر لحسابك.'));
+        return;
+      }
+
+      currentStudent = student;
+      currentStudentId = phone;
+      document.getElementById('studentNameChip').textContent = student.studentName || 'الطالب';
+
+      const backUrl = PAGE_URL_BY_GRADE[String(student.grade)] || 'index.html';
+      document.getElementById('backLink').href = backUrl;
+
+      accessGuard.style.display = 'none';
+      pageContent.style.display = 'block';
+      loadVideo(student);
+      watchSession(phone);
+
+    }catch(err){
+      console.error(err);
+      showGuard('حصل خطأ', 'مقدرناش نتحقق من حسابك، حاول تاني.', false);
+    }
+  });
+}
+
+checkAuth();
+
+function watchSession(phone){
+  studentDocUnsubscribe = db.collection('students').doc(phone).onSnapshot((snap) => {
+    if(!snap.exists) return;
+    const d = snap.data();
+    const mySessionId = localStorage.getItem('alzilal-session-id');
+    if(mySessionId && d.activeSessionId && d.activeSessionId !== mySessionId){
+      if(studentDocUnsubscribe) studentDocUnsubscribe();
+      localStorage.removeItem('alzilal-session-id');
+      localStorage.removeItem('alzilal-current-student');
+      auth.signOut().then(() => showKickedOverlay('تم تسجيل خروجك بسبب دخول شخص آخر لحسابك.'));
+    }
+  });
+}
+
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+  if(!confirm('متأكد إنك عايز تسجل خروج؟')) return;
+  if(studentDocUnsubscribe) studentDocUnsubscribe();
+  const phone = currentStudentId;
+  const mySessionId = localStorage.getItem('alzilal-session-id');
+  try{
+    if(phone && mySessionId){
+      const ref = db.collection('students').doc(phone);
+      const snap = await ref.get();
+      if(snap.exists && snap.data().activeSessionId === mySessionId){
+        await ref.update({ activeSessionId: firebase.firestore.FieldValue.delete() });
+      }
+    }
+  }catch(e){ console.error(e); }
+  localStorage.removeItem('alzilal-current-student');
+  localStorage.removeItem('alzilal-session-id');
+  auth.signOut().then(() => window.location.href = 'login.html');
+});
+
+// =========================================================
+// جلب بيانات الفيديو + التحقق إن الطالب فعلاً مشترك في الكورس
+// المرتبط بيه + عرضه + تسجيل نشاط المشاهدة
+// =========================================================
+function youtubeEmbedUrl(url){
+  if(!url) return '';
+  const match = url.match(/(?:youtu\.be\/|v=|\/embed\/|\/shorts\/)([A-Za-z0-9_-]{6,})/);
+  const id = match ? match[1] : null;
+  return id ? `https://www.youtube.com/embed/${id}` : '';
+}
+
+async function loadVideo(student){
+  const loadingMsg = document.getElementById('videoLoadingMsg');
+  const errorMsg = document.getElementById('videoErrorMsg');
+  const content = document.getElementById('videoContent');
+
+  const params = new URLSearchParams(window.location.search);
+  const videoId = params.get('video');
+
+  if(!videoId){
+    loadingMsg.style.display = 'none';
+    errorMsg.textContent = 'رابط الدرس غير صحيح.';
+    errorMsg.style.display = 'block';
+    return;
+  }
+
+  try{
+    const videoSnap = await db.collection('videos').doc(videoId).get();
+    if(!videoSnap.exists){
+      loadingMsg.style.display = 'none';
+      errorMsg.textContent = 'الدرس ده مش موجود.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    const video = videoSnap.data();
+
+    // تحقق إن الدرس ده فعلاً لصف الطالب
+    if(String(video.grade) !== String(student.grade)){
+      loadingMsg.style.display = 'none';
+      errorMsg.textContent = 'الدرس ده مش متاح لصفك الدراسي.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    // تحقق إن الطالب مشترك (approved) في الكورس المرتبط بالدرس ده
+    const ordersSnap = await db.collection('orders')
+      .where('uid', '==', auth.currentUser.uid)
+      .where('courseId', '==', video.courseId)
+      .where('status', '==', 'approved')
+      .get();
+
+    if(ordersSnap.empty){
+      loadingMsg.style.display = 'none';
+      errorMsg.textContent = 'لازم تكون مشترك في الكورس ده الأول عشان تشوف الدرس.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    const embedUrl = youtubeEmbedUrl(video.videoUrl);
+    if(!embedUrl){
+      loadingMsg.style.display = 'none';
+      errorMsg.textContent = 'رابط الفيديو غير صحيح.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    document.getElementById('videoFrame').src = embedUrl;
+    document.getElementById('videoTitle').textContent = video.title || '';
+    document.getElementById('videoCourseTag').textContent = video.courseTitle || '';
+    document.getElementById('videoDetails').textContent = video.details || '';
+
+    loadingMsg.style.display = 'none';
+    content.style.display = 'block';
+
+    logActivity(videoId, video.title || 'فيديو');
+
+  }catch(err){
+    console.error(err);
+    loadingMsg.style.display = 'none';
+    errorMsg.textContent = 'حصل خطأ في تحميل الدرس: ' + err.message;
+    errorMsg.style.display = 'block';
+  }
+}
+
+// نسجّل مرة واحدة بس لكل مرة الصفحة بتتفتح فيها (مش عند كل تفاعل مع الفيديو)
+async function logActivity(videoId, videoTitle){
+  try{
+    await db.collection('students').doc(currentStudentId)
+      .collection('activity').add({
+        videoId,
+        videoTitle,
+        watchedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+  }catch(err){
+    console.error('حصل خطأ في تسجيل النشاط:', err);
+  }
+}
+</script>
+</body>
+</html>
