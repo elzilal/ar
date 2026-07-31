@@ -135,24 +135,27 @@
   font-size: .95rem;
 }
 .students-list{
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 16px;
-  align-items: start;
 }
 .student-card{
   background: var(--cream-2);
   border: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
   border-radius: var(--radius-md);
   padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
 }
 .student-card-head{
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
+  min-width: 150px;
 }
 .student-card-head h3{
   margin: 0;
@@ -172,12 +175,13 @@
 [data-theme="dark"] .status-approved{ color: #81c784; }
 .student-info-grid{
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 12px;
-  margin-bottom: 16px;
   padding: 14px;
   background: var(--cream);
   border-radius: var(--radius-sm);
+  flex: 1 1 380px;
+  min-width: 280px;
 }
 .student-info-grid > div{ display: flex; flex-direction: column; gap: 3px; }
 .info-label{ font-size: .74rem; color: var(--ink-soft); font-weight: 600; }
@@ -186,10 +190,16 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  flex-shrink: 0;
+  margin-inline-start: auto;
 }
 .student-actions .btn{
   padding: 9px 20px;
   font-size: .85rem;
+}
+@media (max-width: 900px){
+  .student-card{ flex-direction: column; align-items: stretch; }
+  .student-actions{ margin-inline-start: 0; justify-content: flex-start; }
 }
 .approve-btn{ background: linear-gradient(135deg, #4caf50, #388e3c); box-shadow: none; }
 .approve-btn:hover{ transform: translateY(-2px); }
