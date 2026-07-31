@@ -17,9 +17,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-
 <div class="bg-pattern" aria-hidden="true"></div>
-
 <div class="theme-toggle-floating">
   <button class="theme-toggle" id="themeToggle" type="button" aria-label="تبديل الوضع الليلي والنهاري" aria-pressed="false">
     <span class="theme-toggle-track">
@@ -40,7 +38,6 @@
     </span>
   </button>
 </div>
-
 <div class="auth-page">
   <a href="index.html" class="auth-logo">
     <span class="logo-icon" aria-hidden="true">
@@ -51,46 +48,30 @@
     </span>
     <span class="logo-text">الظلال</span>
   </a>
-
   <div class="auth-card">
     <h1>أهلاً بعودتك</h1>
     <p class="auth-sub">سجّل دخولك للمتابعة في رحلتك مع اللغة العربية</p>
-
     <form class="auth-form" id="loginForm">
       <label>
         <span>رقم هاتف الطالب</span>
         <input type="tel" name="studentPhone" placeholder="01xxxxxxxxx" pattern="^01[0-9]{9}$" maxlength="11" required autocomplete="username">
       </label>
-
       <label>
         <span>كلمة المرور</span>
         <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password">
       </label>
-
       <button type="submit" class="btn btn-solid auth-submit">تسجيل الدخول</button>
     </form>
-
     <p class="auth-switch">مالكش حساب؟ <a href="signup.html">إنشاء حساب جديد</a></p>
   </div>
 </div>
-
 <script src="firebase-config.js"></script>
 <script src="script.js"></script>
 <script>
-// =========================================================
-// نظام الجلسة المبسّط:
-// أي تسجيل دخول جديد ناجح = يبقى فورًا هو الجلسة النشطة،
-// من غير أي انتظار موافقة. الجهاز القديم (لو موجود) هيتقفل
-// عليه تلقائيًا من صفحات sec*.html برسالة واضحة إنه تم تسجيل
-// دخول حسابه من جهاز تاني.
-// =========================================================
-
-// لو المستخدم داخل بالفعل بجلسة صالحة، حوّله على طول لصفحته
 let redirectHandled = false;
 const initialAuthCheck = auth.onAuthStateChanged(async (user) => {
   initialAuthCheck();
   if (redirectHandled) return;
-
   if (user && user.email && user.email.endsWith('@elzilal-student.app')) {
     const phone = user.email.replace('@elzilal-student.app', '');
     try {
@@ -109,11 +90,9 @@ const initialAuthCheck = auth.onAuthStateChanged(async (user) => {
     }
   }
 });
-
 function generateSessionId(){
   return 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
 }
-
 document.getElementById('loginForm').addEventListener('submit', async function(e){
   e.preventDefault();
   const form = e.target;
@@ -121,17 +100,12 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   const submitBtn = form.querySelector('button[type="submit"]');
   submitBtn.disabled = true;
   submitBtn.textContent = 'جاري الدخول...';
-
   const fakeEmail = data.studentPhone + '@elzilal-student.app';
-
   try{
     await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
     const loginCred = await auth.signInWithEmailAndPassword(fakeEmail, data.password);
-
     const studentRef = db.collection('students').doc(data.studentPhone);
     const snap = await studentRef.get();
-
     if(!snap.exists){
       await auth.signOut();
       alert('حسابك غير موجود، تواصل مع الإدارة.');
@@ -139,9 +113,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
       submitBtn.textContent = 'تسجيل الدخول';
       return;
     }
-
     const student = snap.data();
-
     if(student.status !== 'approved'){
       await auth.signOut();
       alert('حسابك لسه قيد المراجعة، هيتفعّل بعد ما القسم يوافق عليه.');
@@ -149,21 +121,15 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
       submitBtn.textContent = 'تسجيل الدخول';
       return;
     }
-
     await loginCred.user.getIdToken(true);
-
-    // نظام الجلسة الواحدة المبسّط: تسجيل الدخول الجديد يفتح جلسة
-    // جديدة فورًا ويحل محل أي جلسة قديمة، من غير انتظار موافقة حد.
     const newSessionId = generateSessionId();
     await studentRef.update({ activeSessionId: newSessionId });
     localStorage.setItem('alzilal-session-id', newSessionId);
     localStorage.setItem('alzilal-current-student', data.studentPhone);
-
     redirectHandled = true;
     submitBtn.textContent = 'تم الدخول، جاري التحويل...';
     const gradeToPage = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
     window.location.href = gradeToPage[student.grade] || 'index.html';
-
   }catch(err){
     console.error('LOGIN ERROR FULL DETAILS:', err);
     let msg;
