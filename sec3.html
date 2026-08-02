@@ -96,6 +96,13 @@
         </button>
       </div>
     </div>
+
+    <!-- ============ بار التابات (جوه البار العلوي) ============ -->
+    <nav class="sec-tabs" id="secTabs">
+      <button class="sec-tab active" data-tab="available">الكورسات المتاحة</button>
+      <button class="sec-tab" data-tab="enrolled">الكورسات المفعّلة</button>
+      <button class="sec-tab" data-tab="activity">نشاطي</button>
+    </nav>
   </header>
 
   <!-- ============ القائمة الجانبية ============ -->
@@ -181,21 +188,14 @@
     </div>
   </aside>
 
-  <!-- ============ بار التابات ============ -->
-  <nav class="sec-tabs" id="secTabs">
-    <button class="sec-tab active" data-tab="available">الكورسات المتاحة</button>
-    <button class="sec-tab" data-tab="enrolled">الكورسات المفعّلة</button>
-    <button class="sec-tab" data-tab="activity">نشاطي</button>
-  </nav>
-
   <main class="sec-page">
 
     <!-- ============ تاب: الكورسات المتاحة ============ -->
     <section class="sec-tab-panel active" id="tabAvailable">
       <div class="section-head">
-        <p class="section-eyebrow">صفحتك التعليمية</p>
+        <p class="section-eyebrow" id="availableGreeting">صفحتك التعليمية</p>
         <h1>كورسات الصف الثالث الثانوي</h1>
-        <p>اختار الكورس اللي عايز تشترك فيه وابدأ رحلتك</p>
+        <p>اختار الكورس وابدأ رحلتك في تعلم اللغة العربية</p>
       </div>
 
       <p class="loading-msg" id="loadingMsg">جاري تحميل الكورسات...</p>
@@ -410,6 +410,10 @@ async function checkAuth(){
       currentStudentId = phone;
       localStorage.setItem('alzilal-current-student', phone);
       populateSidebarStudentInfo(student);
+      const availableGreetingEl = document.getElementById('availableGreeting');
+      if(availableGreetingEl){
+        availableGreetingEl.textContent = 'إزيك يا ' + (student.studentName || 'الطالب') + '، دي صفحة الكورسات المتاحة ليك حاليًا';
+      }
       hideSplash();
       showLoginToast(student.studentName || 'الطالب', phone);
       accessGuard.style.display = 'none';
@@ -460,7 +464,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   }catch(e){ console.error(e); }
   localStorage.removeItem('alzilal-current-student');
   localStorage.removeItem('alzilal-session-id');
-  auth.signOut().then(() => window.location.href = 'login.html');
+  auth.signOut().then(() => window.location.href = 'index.html');
 });
 
 // =========================================================
@@ -641,6 +645,12 @@ async function loadEnrolledCourses(){
       return renderEnrolledCourseBlock(order, courseVideos);
     }).join('');
 
+    wrap.querySelectorAll('.enrolled-course-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.closest('.enrolled-course-block').classList.toggle('open');
+      });
+    });
+
   }catch(err){
     console.error(err);
     loadingMsg.style.display = 'none';
@@ -656,8 +666,17 @@ function youtubeThumb(url){
 }
 
 function renderEnrolledCourseBlock(order, videos){
-  const videosHtml = videos.length
-    ? videos.map(v => `
+  // ترتيب الفيديوهات بترتيب الدروس: لو فيه رقم ترتيب (order) بنستخدمه،
+  // ولو مفيش بنرجع لتاريخ الإضافة، عشان الدرس الأول يظهر الأول وهكذا.
+  const sortedVideos = videos.slice().sort((a, b) => {
+    if(a.order != null && b.order != null) return a.order - b.order;
+    const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+    const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+    return ta - tb;
+  });
+
+  const videosHtml = sortedVideos.length
+    ? sortedVideos.map(v => `
         <a class="video-thumb-card" href="watch.html?video=${encodeURIComponent(v.id)}">
           <div class="video-thumb-img-wrap">
             ${youtubeThumb(v.videoUrl) ? `<img src="${escapeHtml(youtubeThumb(v.videoUrl))}" alt="${escapeHtml(v.title || '')}" loading="lazy">` : ''}
@@ -671,9 +690,15 @@ function renderEnrolledCourseBlock(order, videos){
       `).join('')
     : `<p class="empty-msg">لسه مفيش فيديوهات مرفوعة للكورس ده</p>`;
 
+  // اسم الكورس بقى في شكل دايرة/شريحة بتضغط عليها فتفتح فيديوهات
+  // الكورس ده تحتها. لو الطالب مشترك في أكتر من كورس، كل كورس
+  // بييجي بشريحته الخاصة وفيديوهاته تتفتح لوحدها من غير ما تأثر على الباقي.
   return `
     <div class="enrolled-course-block">
-      <h2 class="enrolled-course-title">${escapeHtml(order.courseTitle || '')}</h2>
+      <button type="button" class="enrolled-course-chip">
+        <span class="chip-label">${escapeHtml(order.courseTitle || '')}</span>
+        <span class="chip-arrow" aria-hidden="true">▾</span>
+      </button>
       <div class="videos-grid">${videosHtml}</div>
     </div>
   `;
