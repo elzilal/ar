@@ -38,7 +38,7 @@
 <!-- ============ شاشة البداية (Splash) ============ -->
 <div id="appSplash">
   <img src="splash-white.png" alt="الظلال" class="splash-logo" id="splashLogo">
-  <p class="splash-text">ثواني يا بطل شد حيلك عاوزينك تشرفنا😎❤</p>
+  <p class="splash-text">ثواني هتبطل شد حيلك عاوزينك تشرفنا😎❤</p>
 </div>
 <script>
   (function(){
@@ -49,6 +49,17 @@
 </script>
 
 <div class="bg-pattern" aria-hidden="true"></div>
+
+<!-- ============ توست: تم تسجيل الدخول ============ -->
+<div id="loginToast">
+  <span class="toast-check" aria-hidden="true">
+    <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+  </span>
+  <span class="toast-text">
+    <span class="toast-title">تم تسجيل الدخول بنجاح</span>
+    <span class="toast-name" id="loginToastName"></span>
+  </span>
+</div>
 
 <!-- ============ حارس الوصول (يظهر لو مفيش صلاحية) ============ -->
 <div class="access-guard" id="accessGuard" style="display:none">
@@ -61,7 +72,7 @@
 <div id="pageContent" style="display:none">
 
   <header class="sec-header">
-    <div class="sec-header-inner">
+    <div class="sec-header-inner slim">
       <a href="index.html" class="logo">
         <span class="logo-icon" aria-hidden="true">
           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
@@ -71,7 +82,42 @@
         </span>
         <span class="logo-text">الظلال</span>
       </a>
-      <div class="sec-header-actions">
+      <div class="sec-header-actions slim-actions">
+        <button class="header-avatar-btn" id="headerAvatarBtn" type="button" aria-label="فتح القائمة">
+          <img src="" alt="" id="headerAvatarImg" style="display:none">
+          <svg id="headerAvatarPlaceholder" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+            <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="hamburger-btn" id="sidebarToggleBtn" type="button" aria-label="فتح القائمة الجانبية" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ القائمة الجانبية ============ -->
+  <div id="sidebarBackdrop"></div>
+  <aside id="appSidebar" aria-hidden="true">
+    <div class="sidebar-head">
+      <span class="sidebar-avatar" id="sidebarAvatarBtn" title="تغيير الصورة الشخصية">
+        <img src="" alt="" id="sidebarAvatarImg" style="display:none">
+        <svg id="sidebarAvatarPlaceholder" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+          <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <div class="sidebar-id">
+        <span class="sidebar-student-name" id="sidebarStudentName">—</span>
+        <span class="sidebar-student-grade" id="sidebarStudentGrade">—</span>
+      </div>
+      <input type="file" id="avatarFileInput" accept="image/*" style="display:none">
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-theme-row">
+        <span>الوضع الليلي</span>
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="تبديل الوضع الليلي والنهاري" aria-pressed="false">
           <span class="theme-toggle-track">
             <span class="theme-toggle-thumb">
@@ -90,10 +136,45 @@
             </svg>
           </span>
         </button>
-        <span class="student-name-chip" id="studentNameChip">—</span>
       </div>
     </div>
-  </header>
+
+    <div class="sidebar-section">
+      <p class="sidebar-section-label">قرآن كريم لمن يريد أن يهدأ</p>
+      <div class="reciter-row">
+        <span class="reciter-name">
+          <span class="sidebar-item-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v14M8 7l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="19" r="2" stroke="currentColor" stroke-width="2"/></svg>
+          </span>
+          الشيخ محمد صديق المنشاوي
+        </span>
+        <button class="reciter-play-btn" id="playMinshawi" type="button" aria-label="تشغيل الشيخ المنشاوي" data-reciter="minshawi">
+          <svg viewBox="0 0 24 24" fill="currentColor" class="icon-play"><path d="M8 5v14l11-7z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" class="icon-stop" style="display:none"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+        </button>
+      </div>
+      <div class="reciter-row">
+        <span class="reciter-name">
+          <span class="sidebar-item-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v14M8 7l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="19" r="2" stroke="currentColor" stroke-width="2"/></svg>
+          </span>
+          الشيخ محمود خليل الحصري
+        </span>
+        <button class="reciter-play-btn" id="playHusary" type="button" aria-label="تشغيل الشيخ الحصري" data-reciter="husary">
+          <svg viewBox="0 0 24 24" fill="currentColor" class="icon-play"><path d="M8 5v14l11-7z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" class="icon-stop" style="display:none"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+        </button>
+      </div>
+      <audio id="quranAudio" preload="none"></audio>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="https://wa.me/201550425843" target="_blank" rel="noopener" class="sidebar-support-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.29-1.39a9.87 9.87 0 004.75 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.02c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.12.11-1.8-.11-.42-.13-.95-.31-1.64-.6-2.88-1.24-4.76-4.14-4.9-4.33-.14-.19-1.17-1.56-1.17-2.98 0-1.42.74-2.11 1-2.4.26-.29.57-.36.76-.36.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.58.81 2 .88 2.14.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.86-1.06.18-.27.36-.22.6-.13.24.09 1.53.72 1.79.85.26.13.43.19.5.3.07.11.07.63-.17 1.31z"/></svg>
+        الدعم الفني (واتساب)
+      </a>
+    </div>
+  </aside>
 
   <main class="sec-page">
     <div class="section-head">
@@ -133,6 +214,17 @@ const guardBtn = document.getElementById('guardBtn');
 function hideSplash(){
   const splash = document.getElementById('appSplash');
   if(splash) splash.classList.add('splash-hidden');
+}
+
+function showLoginToast(name){
+  const toast = document.getElementById('loginToast');
+  const nameEl = document.getElementById('loginToastName');
+  if(!toast) return;
+  if(nameEl) nameEl.textContent = name || '';
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  setTimeout(() => { toast.classList.remove('show'); }, 3200);
 }
 
 function showGuard(title, text, showLoginBtn){
@@ -263,8 +355,9 @@ async function checkAuth(){
       currentStudent = student;
       currentStudentId = phone;
       localStorage.setItem('alzilal-current-student', phone);
-      document.getElementById('studentNameChip').textContent = student.studentName || 'الطالب';
+      populateSidebarStudentInfo(student);
       hideSplash();
+      showLoginToast(student.studentName || 'الطالب');
       accessGuard.style.display = 'none';
       pageContent.style.display = 'block';
       loadCourses();
@@ -429,6 +522,123 @@ function escapeHtml(str){
   div.textContent = str;
   return div.innerHTML;
 }
+
+// ============ القائمة الجانبية: فتح / قفل ============
+const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+const headerAvatarBtn = document.getElementById('headerAvatarBtn');
+const appSidebar = document.getElementById('appSidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+function openSidebar(){
+  appSidebar.classList.add('open');
+  sidebarBackdrop.classList.add('open');
+  appSidebar.setAttribute('aria-hidden', 'false');
+  sidebarToggleBtn.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar(){
+  appSidebar.classList.remove('open');
+  sidebarBackdrop.classList.remove('open');
+  appSidebar.setAttribute('aria-hidden', 'true');
+  sidebarToggleBtn.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+}
+sidebarToggleBtn.addEventListener('click', openSidebar);
+headerAvatarBtn.addEventListener('click', openSidebar);
+sidebarBackdrop.addEventListener('click', closeSidebar);
+
+// ============ بيانات الطالب في السايدبار ============
+const GRADE_LABELS_SIDEBAR = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
+function populateSidebarStudentInfo(student){
+  const nameEl = document.getElementById('sidebarStudentName');
+  const gradeEl = document.getElementById('sidebarStudentGrade');
+  if(nameEl) nameEl.textContent = student.studentName || 'الطالب';
+  if(gradeEl) gradeEl.textContent = GRADE_LABELS_SIDEBAR[String(student.grade)] || '';
+  if(student.photoURL){
+    setAvatarImage(student.photoURL);
+  }
+}
+function setAvatarImage(url){
+  [['headerAvatarImg','headerAvatarPlaceholder'], ['sidebarAvatarImg','sidebarAvatarPlaceholder']].forEach(([imgId, phId]) => {
+    const img = document.getElementById(imgId);
+    const ph = document.getElementById(phId);
+    if(img && ph && url){
+      img.src = url;
+      img.style.display = 'block';
+      ph.style.display = 'none';
+    }
+  });
+}
+
+// ============ رفع صورة البروفايل ============
+// ملاحظة: الرفع الفعلي لـ Firebase Storage محتاج تفعيل الخدمة من الكونسول أولاً.
+const sidebarAvatarBtn = document.getElementById('sidebarAvatarBtn');
+const avatarFileInput = document.getElementById('avatarFileInput');
+if(sidebarAvatarBtn && avatarFileInput){
+  sidebarAvatarBtn.addEventListener('click', () => avatarFileInput.click());
+  avatarFileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    // TODO: رفع الصورة إلى Firebase Storage وربطها بحساب الطالب — قيد التفعيل
+    console.log('تم اختيار صورة، الرفع لـ Storage قيد التفعيل:', file.name);
+  });
+}
+
+// ============ مشغل القرآن ============
+const quranAudio = document.getElementById('quranAudio');
+const RECITERS = {
+  minshawi: {
+    main: 'https://backup.qurango.net/radio/mohammed_siddiq_alminshawi',
+    fallback: 'https://backup.qurango.net/radio/mohammed_siddiq_alminshawi_mojawwad'
+  },
+  husary: {
+    main: 'https://backup.qurango.net/radio/mahmoud_khalil_alhussary',
+    fallback: 'https://backup.qurango.net/radio/mahmoud_khalil_alhussary_mojawwad'
+  }
+};
+let currentReciter = null;
+
+function setPlayBtnState(btn, playing){
+  const playIcon = btn.querySelector('.icon-play');
+  const stopIcon = btn.querySelector('.icon-stop');
+  btn.classList.toggle('playing', playing);
+  playIcon.style.display = playing ? 'none' : 'block';
+  stopIcon.style.display = playing ? 'block' : 'none';
+}
+function stopQuran(){
+  quranAudio.pause();
+  quranAudio.removeAttribute('src');
+  document.querySelectorAll('.reciter-play-btn').forEach(b => setPlayBtnState(b, false));
+  currentReciter = null;
+}
+function playReciter(key, btn){
+  const reciter = RECITERS[key];
+  if(!reciter) return;
+  document.querySelectorAll('.reciter-play-btn').forEach(b => { if(b !== btn) setPlayBtnState(b, false); });
+  quranAudio.src = reciter.main;
+  quranAudio.play().catch(() => {
+    quranAudio.src = reciter.fallback;
+    quranAudio.play().catch(err => console.error('تعذر تشغيل البث:', err));
+  });
+  setPlayBtnState(btn, true);
+  currentReciter = key;
+}
+quranAudio.addEventListener('error', () => {
+  if(currentReciter && quranAudio.src.indexOf('mojawwad') === -1){
+    quranAudio.src = RECITERS[currentReciter].fallback;
+    quranAudio.play().catch(err => console.error('تعذر تشغيل النسخة الاحتياطية:', err));
+  }
+});
+document.querySelectorAll('.reciter-play-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.reciter;
+    if(currentReciter === key){
+      stopQuran();
+    }else{
+      playReciter(key, btn);
+    }
+  });
+});
 </script>
 </body>
 </html>
