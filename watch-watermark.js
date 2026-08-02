@@ -10,27 +10,26 @@ function startWatermark(studentName, phone){
 
   wm.textContent = `${studentName || 'طالب'} - ${phone || ''}`;
 
-  let x = 16, y = 16;
-  let dx = 1.1, dy = 0.85; // سرعة الحركة بالبكسل لكل فريم
-
-  function tick(){
+  // الواتر مارك بيقف في مكان ثابت، وكل دقيقة بيقفز لمكان عشوائي تاني
+  // بدل ما يفضل بيتحرك على طول. ده بيسهّل قراءة الاسم وبرضه يمنع
+  // إن حد يغطي عليه بمكان ثابت لمدة طويلة.
+  function moveToRandomSpot(){
     const boxW = wrap.clientWidth;
     const boxH = wrap.clientHeight;
     const wmW = wm.offsetWidth || 140;
     const wmH = wm.offsetHeight || 30;
 
-    x += dx;
-    y += dy;
+    const maxX = Math.max(0, boxW - wmW);
+    const maxY = Math.max(0, boxH - wmH);
 
-    if(x <= 0){ x = 0; dx = Math.abs(dx); }
-    if(x + wmW >= boxW){ x = Math.max(0, boxW - wmW); dx = -Math.abs(dx); }
-    if(y <= 0){ y = 0; dy = Math.abs(dy); }
-    if(y + wmH >= boxH){ y = Math.max(0, boxH - wmH); dy = -Math.abs(dy); }
+    const x = Math.random() * maxX;
+    const y = Math.random() * maxY;
 
     wm.style.transform = `translate(${x}px, ${y}px)`;
-    requestAnimationFrame(tick);
   }
-  requestAnimationFrame(tick);
+
+  moveToRandomSpot();
+  setInterval(moveToRandomSpot, 60000); // كل دقيقة (60000 مللي ثانية)
 }
 
 // زرار fullscreen مخصص: بيكبّر الـ wrapper كله (فيديو + واتر مارك)
