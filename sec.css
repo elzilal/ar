@@ -606,7 +606,7 @@
 }
 html[dir="rtl"] #appSidebar{ right: 0; left: auto; transform: translateX(100%); }
 [data-theme="dark"] #appSidebar{ background: #1a1410; }
-#appSidebar.open{ transform: translateX(0); }
+#appSidebar.open, html[dir="rtl"] #appSidebar.open{ transform: translateX(0); }
 
 .sidebar-head{
   display: flex;
