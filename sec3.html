@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>كورسات تالتة ثانوي | الظلال</title>
+<title>كورسات تانية ثانوي | الظلال</title>
 <script>
   (function(){
     var saved = localStorage.getItem('alzilal-theme');
@@ -83,6 +83,13 @@
         </span>
         <span class="logo-text">الظلال</span>
       </a>
+      <div class="sec-header-tabs-wrap">
+        <nav class="sec-tabs" id="secTabs">
+          <button class="sec-tab active" data-tab="available">الكورسات المتاحة</button>
+          <button class="sec-tab" data-tab="enrolled">الكورسات المفعّلة</button>
+          <button class="sec-tab" data-tab="activity">نشاطي</button>
+        </nav>
+      </div>
       <div class="sec-header-actions slim-actions">
         <button class="header-avatar-btn" id="headerAvatarBtn" type="button" aria-label="فتح القائمة">
           <img src="" alt="" id="headerAvatarImg" style="display:none">
@@ -96,6 +103,12 @@
         </button>
       </div>
     </div>
+    <!-- نسخة التابات للموبايل: بتظهر تحت الهيدر لما الشاشة تبقى ضيقة -->
+    <nav class="sec-tabs sec-tabs-mobile" id="secTabsMobile">
+      <button class="sec-tab active" data-tab="available">الكورسات المتاحة</button>
+      <button class="sec-tab" data-tab="enrolled">الكورسات المفعّلة</button>
+      <button class="sec-tab" data-tab="activity">نشاطي</button>
+    </nav>
   </header>
 
   <!-- ============ القائمة الجانبية ============ -->
@@ -181,21 +194,14 @@
     </div>
   </aside>
 
-  <!-- ============ بار التابات ============ -->
-  <nav class="sec-tabs" id="secTabs">
-    <button class="sec-tab active" data-tab="available">الكورسات المتاحة</button>
-    <button class="sec-tab" data-tab="enrolled">الكورسات المفعّلة</button>
-    <button class="sec-tab" data-tab="activity">نشاطي</button>
-  </nav>
-
   <main class="sec-page">
 
     <!-- ============ تاب: الكورسات المتاحة ============ -->
     <section class="sec-tab-panel active" id="tabAvailable">
       <div class="section-head">
         <p class="section-eyebrow">صفحتك التعليمية</p>
-        <h1>كورسات الصف الثالث الثانوي</h1>
-        <p>اختار الكورس اللي عايز تشترك فيه وابدأ رحلتك</p>
+        <h1 id="availableWelcomeTitle">ازيك يا <span class="welcome-name" id="availableWelcomeName">الطالب</span>، دي صفحة الكورسات المتاحة ليك حاليًا</h1>
+        <p>كورسات الصف الثاني الثانوي — اختار الكورس وابدأ رحلتك في تعلم اللغة العربية</p>
       </div>
 
       <p class="loading-msg" id="loadingMsg">جاري تحميل الكورسات...</p>
@@ -215,6 +221,7 @@
       <p class="loading-msg" id="enrolledLoadingMsg" style="display:none">جاري تحميل دروسك...</p>
       <p class="empty-msg" id="enrolledEmptyMsg" style="display:none">مفيش عندك كورسات مفعّلة حاليًا</p>
 
+      <div class="enrolled-courses-picker" id="enrolledCoursesPicker"></div>
       <div id="enrolledCoursesWrap"></div>
     </section>
 
@@ -241,8 +248,8 @@
 // =========================================================
 // إعداد الصفحة: كل صفحة sec لازم تغيّر السطر ده بس
 // =========================================================
-const PAGE_GRADE = "3";
-const PAGE_LOCATION = "sec3";
+const PAGE_GRADE = "2";
+const PAGE_LOCATION = "sec2";
 const PAGE_URL_BY_GRADE = { "1": "sec1.html", "2": "sec2.html", "3": "sec3.html" };
 
 const accessGuard = document.getElementById('accessGuard');
@@ -410,6 +417,8 @@ async function checkAuth(){
       currentStudentId = phone;
       localStorage.setItem('alzilal-current-student', phone);
       populateSidebarStudentInfo(student);
+      const welcomeNameEl = document.getElementById('availableWelcomeName');
+      if(welcomeNameEl) welcomeNameEl.textContent = student.studentName || 'الطالب';
       hideSplash();
       showLoginToast(student.studentName || 'الطالب', phone);
       accessGuard.style.display = 'none';
@@ -460,7 +469,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   }catch(e){ console.error(e); }
   localStorage.removeItem('alzilal-current-student');
   localStorage.removeItem('alzilal-session-id');
-  auth.signOut().then(() => window.location.href = 'login.html');
+  auth.signOut().then(() => window.location.href = 'index.html');
 });
 
 // =========================================================
@@ -583,36 +592,41 @@ function escapeHtml(str){
 let enrolledLoaded = false;
 let activityLoaded = false;
 
-document.querySelectorAll('.sec-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.sec-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.sec-tab-panel').forEach(p => p.classList.remove('active'));
-    tab.classList.add('active');
+function activateTab(target){
+  document.querySelectorAll('.sec-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === target));
+  document.querySelectorAll('.sec-tab-panel').forEach(p => p.classList.remove('active'));
 
-    const target = tab.dataset.tab;
-    if(target === 'available'){
-      document.getElementById('tabAvailable').classList.add('active');
-    }else if(target === 'enrolled'){
-      document.getElementById('tabEnrolled').classList.add('active');
-      if(!enrolledLoaded){ enrolledLoaded = true; loadEnrolledCourses(); }
-    }else if(target === 'activity'){
-      document.getElementById('tabActivity').classList.add('active');
-      if(!activityLoaded){ activityLoaded = true; loadActivity(); }
-    }
-  });
+  if(target === 'available'){
+    document.getElementById('tabAvailable').classList.add('active');
+  }else if(target === 'enrolled'){
+    document.getElementById('tabEnrolled').classList.add('active');
+    if(!enrolledLoaded){ enrolledLoaded = true; loadEnrolledCourses(); }
+  }else if(target === 'activity'){
+    document.getElementById('tabActivity').classList.add('active');
+    if(!activityLoaded){ activityLoaded = true; loadActivity(); }
+  }
+}
+
+document.querySelectorAll('.sec-tab').forEach(tab => {
+  tab.addEventListener('click', () => activateTab(tab.dataset.tab));
 });
 
 // =========================================================
 // تاب الكورسات المفعّلة: بيجيب الكورسات approved بتاعة الطالب
 // وبيحمّل فيديوهات كل كورس منهم من مجموعة videos
 // =========================================================
+let enrolledOrdersCache = [];
+let enrolledVideosCache = [];
+
 async function loadEnrolledCourses(){
   const loadingMsg = document.getElementById('enrolledLoadingMsg');
   const emptyMsg = document.getElementById('enrolledEmptyMsg');
+  const picker = document.getElementById('enrolledCoursesPicker');
   const wrap = document.getElementById('enrolledCoursesWrap');
 
   loadingMsg.style.display = 'block';
   emptyMsg.style.display = 'none';
+  picker.innerHTML = '';
   wrap.innerHTML = '';
 
   try{
@@ -636,16 +650,49 @@ async function loadEnrolledCourses(){
       .get();
     const allVideos = videosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    wrap.innerHTML = approvedOrders.map(order => {
-      const courseVideos = allVideos.filter(v => v.courseId === order.courseId);
-      return renderEnrolledCourseBlock(order, courseVideos);
-    }).join('');
+    enrolledOrdersCache = approvedOrders;
+    enrolledVideosCache = allVideos;
+
+    picker.innerHTML = approvedOrders.map((order, idx) => `
+      <button class="enrolled-course-circle${idx === 0 ? ' active' : ''}" type="button" data-course-id="${escapeHtml(order.courseId)}">
+        <span class="enrolled-course-circle-badge">${escapeHtml(order.courseTitle || '')}</span>
+        <span class="enrolled-course-circle-label">${escapeHtml(order.courseTitle || '')}</span>
+      </button>
+    `).join('');
+
+    picker.querySelectorAll('.enrolled-course-circle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        picker.querySelectorAll('.enrolled-course-circle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        showEnrolledCourseVideos(btn.dataset.courseId);
+      });
+    });
+
+    // نعرض فيديوهات أول كورس تلقائيًا
+    showEnrolledCourseVideos(approvedOrders[0].courseId);
 
   }catch(err){
     console.error(err);
     loadingMsg.style.display = 'none';
     wrap.innerHTML = `<p class="empty-msg">حصل خطأ في تحميل دروسك: ${escapeHtml(err.message)}</p>`;
   }
+}
+
+function showEnrolledCourseVideos(courseId){
+  const wrap = document.getElementById('enrolledCoursesWrap');
+  const order = enrolledOrdersCache.find(o => o.courseId === courseId);
+  if(!order){ wrap.innerHTML = ''; return; }
+  const courseVideos = enrolledVideosCache
+    .filter(v => v.courseId === courseId)
+    .sort((a, b) => {
+      const ao = typeof a.order === 'number' ? a.order : null;
+      const bo = typeof b.order === 'number' ? b.order : null;
+      if(ao !== null && bo !== null) return ao - bo;
+      if(ao !== null) return -1;
+      if(bo !== null) return 1;
+      return (a.title || '').localeCompare(b.title || '', 'ar');
+    });
+  wrap.innerHTML = renderEnrolledCourseBlock(order, courseVideos);
 }
 
 function youtubeThumb(url){
@@ -657,14 +704,14 @@ function youtubeThumb(url){
 
 function renderEnrolledCourseBlock(order, videos){
   const videosHtml = videos.length
-    ? videos.map(v => `
+    ? videos.map((v, idx) => `
         <a class="video-thumb-card" href="watch.html?video=${encodeURIComponent(v.id)}">
           <div class="video-thumb-img-wrap">
             ${youtubeThumb(v.videoUrl) ? `<img src="${escapeHtml(youtubeThumb(v.videoUrl))}" alt="${escapeHtml(v.title || '')}" loading="lazy">` : ''}
             <span class="video-thumb-play" aria-hidden="true">▶</span>
           </div>
           <div class="video-thumb-body">
-            <h4>${escapeHtml(v.title || '')}</h4>
+            <h4>الدرس ${idx + 1}: ${escapeHtml(v.title || '')}</h4>
             <p>${escapeHtml(v.details || '')}</p>
           </div>
         </a>
