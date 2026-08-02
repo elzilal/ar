@@ -75,7 +75,7 @@
   .student-avatar-mini{ width: 28px; height: 28px; }
   .student-avatar-mini svg{ width: 15px; height: 15px; }
 }
-@media (max-width: 380px){
+@media (max-width: 420px){
   .sec-header .logo-text{ display: none; }
   .student-name-chip{ max-width: 76px; }
 }
@@ -156,18 +156,29 @@
   font-size: .88rem;
   color: var(--ink-soft);
 }
-.sec-header .sec-tabs{
-  max-width: 1200px;
-  margin: 14px auto 0;
-  padding: 14px 6vw 0;
-  border-top: 1px solid color-mix(in srgb, var(--gold) 25%, transparent);
+.sec-header-inner.slim .sec-tabs{
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  justify-content: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.sec-header-inner.slim .sec-tabs::-webkit-scrollbar{ display: none; }
+.sec-header-inner.slim .sec-tab{
+  padding: 9px 18px;
+  font-size: .85rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+@media (max-width: 900px){
+  .sec-header-inner.slim .sec-tabs{ justify-content: flex-start; }
 }
 @media (max-width: 640px){
-  .sec-header .sec-tabs{ gap: 6px; margin-top: 10px; padding-top: 10px; }
-  .sec-header .sec-tabs .sec-tab{ padding: 8px 14px; font-size: .78rem; }
+  .sec-header-inner.slim .sec-tabs{ gap: 6px; }
+  .sec-header-inner.slim .sec-tab{ padding: 7px 12px; font-size: .74rem; }
 }
 .sec-tab{
   padding: 10px 22px;
