@@ -157,21 +157,23 @@
   color: var(--ink-soft);
 }
 .sec-tabs{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 6vw 0;
   display: flex;
-  gap: 8px;
-  flex-wrap: nowrap;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 .sec-tab{
-  padding: 8px 16px;
+  padding: 10px 22px;
   border-radius: 999px;
   border: 1.5px solid color-mix(in srgb, var(--olive) 45%, transparent);
   background: transparent;
   color: var(--ink-soft);
   font-weight: 700;
-  font-size: .82rem;
+  font-size: .9rem;
   cursor: pointer;
   transition: all .2s ease;
-  white-space: nowrap;
 }
 .sec-tab:hover{ border-color: var(--coral); color: var(--coral); }
 .sec-tab.active{
@@ -179,88 +181,8 @@
   border-color: var(--coral);
   color: #fff;
 }
-/* ============ التابات جوه الهيدر العلوي ============ */
-.sec-header-inner.slim{ gap: 16px; }
-.sec-header-tabs-wrap{
-  display: flex;
-  align-items: center;
-  flex: 1 1 auto;
-  justify-content: center;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.sec-header-tabs-wrap::-webkit-scrollbar{ display: none; }
-@media (max-width: 780px){
-  .sec-header-tabs-wrap{ display: none; }
-}
-.sec-tabs-mobile{
-  display: none;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 14px 4vw 0;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.sec-tabs-mobile::-webkit-scrollbar{ display: none; }
-@media (max-width: 780px){
-  .sec-tabs-mobile{ display: flex; }
-}
 .sec-tab-panel{ display: none; }
 .sec-tab-panel.active{ display: block; }
-/* ============ الكورسات المفعّلة: دوائر يتم اختيار كورس منها ============ */
-.enrolled-courses-picker{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 22px;
-  justify-content: flex-end;
-  margin-bottom: 40px;
-}
-.enrolled-course-circle{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  width: 108px;
-}
-.enrolled-course-circle-badge{
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, var(--gold), var(--olive));
-  border: 3px solid color-mix(in srgb, var(--gold) 60%, transparent);
-  color: var(--maroon);
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
-  text-align: center;
-  padding: 8px;
-  line-height: 1.2;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-  box-shadow: var(--shadow-card);
-}
-.enrolled-course-circle:hover .enrolled-course-circle-badge{
-  transform: translateY(-4px) scale(1.04);
-}
-.enrolled-course-circle.active .enrolled-course-circle-badge{
-  border-color: var(--coral);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--coral) 35%, transparent);
-}
-.enrolled-course-circle-label{
-  font-size: .82rem;
-  font-weight: 700;
-  color: var(--ink-soft);
-  text-align: center;
-}
-.enrolled-course-circle.active .enrolled-course-circle-label{ color: var(--coral); }
-
 .enrolled-course-block{ margin-bottom: 44px; }
 .enrolled-course-title{
   font-family: var(--font-display);
@@ -269,21 +191,12 @@
   margin: 0 0 18px;
   padding-bottom: 10px;
   border-bottom: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
-  text-align: right;
 }
 [data-theme="dark"] .enrolled-course-title{ color: var(--gold); }
-
-/* ============ شبكة الفيديوهات: 3 فيديوهات بالصف بالترتيب، وتنزل صفوف ============ */
 .videos-grid{
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 18px;
-}
-@media (max-width: 900px){
-  .videos-grid{ grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 560px){
-  .videos-grid{ grid-template-columns: 1fr; }
 }
 .video-thumb-card{
   display: flex;
@@ -368,8 +281,7 @@
   margin: 0 auto;
   padding: 50px 6vw 90px;
 }
-.sec-page .section-head{ text-align: right; margin-bottom: 40px; }
-.sec-page .section-head .welcome-name{ color: var(--coral); }
+.sec-page .section-head{ text-align: center; margin-bottom: 40px; }
 .sec-page .section-eyebrow{ color: var(--olive); font-weight: 700; margin: 0 0 8px; }
 .sec-page h1{
   font-family: var(--font-display);

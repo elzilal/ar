@@ -83,13 +83,6 @@
         </span>
         <span class="logo-text">الظلال</span>
       </a>
-      <div class="sec-header-tabs-wrap">
-        <nav class="sec-tabs" id="secTabs">
-          <button class="sec-tab active" data-tab="available">الكورسات المتاحة</button>
-          <button class="sec-tab" data-tab="enrolled">الكورسات المفعّلة</button>
-          <button class="sec-tab" data-tab="activity">نشاطي</button>
-        </nav>
-      </div>
       <div class="sec-header-actions slim-actions">
         <button class="header-avatar-btn" id="headerAvatarBtn" type="button" aria-label="فتح القائمة">
           <img src="" alt="" id="headerAvatarImg" style="display:none">
@@ -103,12 +96,6 @@
         </button>
       </div>
     </div>
-    <!-- نسخة التابات للموبايل: بتظهر تحت الهيدر لما الشاشة تبقى ضيقة -->
-    <nav class="sec-tabs sec-tabs-mobile" id="secTabsMobile">
-      <button class="sec-tab active" data-tab="available">الكورسات المتاحة</button>
-      <button class="sec-tab" data-tab="enrolled">الكورسات المفعّلة</button>
-      <button class="sec-tab" data-tab="activity">نشاطي</button>
-    </nav>
   </header>
 
   <!-- ============ القائمة الجانبية ============ -->
@@ -195,49 +182,16 @@
   </aside>
 
   <main class="sec-page">
+    <div class="section-head">
+      <p class="section-eyebrow">صفحتك التعليمية</p>
+      <h1>كورسات الصف الثاني الثانوي</h1>
+      <p>اختار الكورس اللي عايز تشترك فيه وابدأ رحلتك</p>
+    </div>
 
-    <!-- ============ تاب: الكورسات المتاحة ============ -->
-    <section class="sec-tab-panel active" id="tabAvailable">
-      <div class="section-head">
-        <p class="section-eyebrow">صفحتك التعليمية</p>
-        <h1 id="availableWelcomeTitle">ازيك يا <span class="welcome-name" id="availableWelcomeName">الطالب</span>، دي صفحة الكورسات المتاحة ليك حاليًا</h1>
-        <p>كورسات الصف الثاني الثانوي — اختار الكورس وابدأ رحلتك في تعلم اللغة العربية</p>
-      </div>
+    <p class="loading-msg" id="loadingMsg">جاري تحميل الكورسات...</p>
+    <p class="empty-msg" id="emptyMsg" style="display:none">لسه مفيش كورسات متاحة للصف ده حاليًا</p>
 
-      <p class="loading-msg" id="loadingMsg">جاري تحميل الكورسات...</p>
-      <p class="empty-msg" id="emptyMsg" style="display:none">لسه مفيش كورسات متاحة للصف ده حاليًا</p>
-
-      <div class="courses-grid" id="coursesGrid"></div>
-    </section>
-
-    <!-- ============ تاب: الكورسات المفعّلة (فيديوهات) ============ -->
-    <section class="sec-tab-panel" id="tabEnrolled">
-      <div class="section-head">
-        <p class="section-eyebrow">صفحتك التعليمية</p>
-        <h1>الكورسات المفعّلة ليك</h1>
-        <p>شوف دروسك واتفرج على الفيديوهات</p>
-      </div>
-
-      <p class="loading-msg" id="enrolledLoadingMsg" style="display:none">جاري تحميل دروسك...</p>
-      <p class="empty-msg" id="enrolledEmptyMsg" style="display:none">مفيش عندك كورسات مفعّلة حاليًا</p>
-
-      <div class="enrolled-courses-picker" id="enrolledCoursesPicker"></div>
-      <div id="enrolledCoursesWrap"></div>
-    </section>
-
-    <!-- ============ تاب: نشاطي ============ -->
-    <section class="sec-tab-panel" id="tabActivity">
-      <div class="section-head">
-        <p class="section-eyebrow">صفحتك التعليمية</p>
-        <h1>نشاطي</h1>
-        <p>الفيديوهات اللي اتفرجت عليها وتاريخ مشاهدتها</p>
-      </div>
-
-      <p class="loading-msg" id="activityLoadingMsg" style="display:none">جاري تحميل نشاطك...</p>
-      <p class="empty-msg" id="activityEmptyMsg" style="display:none">لسه مفتحتش أي فيديو</p>
-
-      <div class="activity-list" id="activityList"></div>
-    </section>
+    <div class="courses-grid" id="coursesGrid"></div>
   </main>
 
 </div>
@@ -417,8 +371,6 @@ async function checkAuth(){
       currentStudentId = phone;
       localStorage.setItem('alzilal-current-student', phone);
       populateSidebarStudentInfo(student);
-      const welcomeNameEl = document.getElementById('availableWelcomeName');
-      if(welcomeNameEl) welcomeNameEl.textContent = student.studentName || 'الطالب';
       hideSplash();
       showLoginToast(student.studentName || 'الطالب', phone);
       accessGuard.style.display = 'none';
@@ -469,7 +421,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   }catch(e){ console.error(e); }
   localStorage.removeItem('alzilal-current-student');
   localStorage.removeItem('alzilal-session-id');
-  auth.signOut().then(() => window.location.href = 'index.html');
+  auth.signOut().then(() => window.location.href = 'login.html');
 });
 
 // =========================================================
@@ -584,195 +536,6 @@ function escapeHtml(str){
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
-}
-
-// =========================================================
-// بار التابات: الكورسات المتاحة / الكورسات المفعّلة / نشاطي
-// =========================================================
-let enrolledLoaded = false;
-let activityLoaded = false;
-
-function activateTab(target){
-  document.querySelectorAll('.sec-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === target));
-  document.querySelectorAll('.sec-tab-panel').forEach(p => p.classList.remove('active'));
-
-  if(target === 'available'){
-    document.getElementById('tabAvailable').classList.add('active');
-  }else if(target === 'enrolled'){
-    document.getElementById('tabEnrolled').classList.add('active');
-    if(!enrolledLoaded){ enrolledLoaded = true; loadEnrolledCourses(); }
-  }else if(target === 'activity'){
-    document.getElementById('tabActivity').classList.add('active');
-    if(!activityLoaded){ activityLoaded = true; loadActivity(); }
-  }
-}
-
-document.querySelectorAll('.sec-tab').forEach(tab => {
-  tab.addEventListener('click', () => activateTab(tab.dataset.tab));
-});
-
-// =========================================================
-// تاب الكورسات المفعّلة: بيجيب الكورسات approved بتاعة الطالب
-// وبيحمّل فيديوهات كل كورس منهم من مجموعة videos
-// =========================================================
-let enrolledOrdersCache = [];
-let enrolledVideosCache = [];
-
-async function loadEnrolledCourses(){
-  const loadingMsg = document.getElementById('enrolledLoadingMsg');
-  const emptyMsg = document.getElementById('enrolledEmptyMsg');
-  const picker = document.getElementById('enrolledCoursesPicker');
-  const wrap = document.getElementById('enrolledCoursesWrap');
-
-  loadingMsg.style.display = 'block';
-  emptyMsg.style.display = 'none';
-  picker.innerHTML = '';
-  wrap.innerHTML = '';
-
-  try{
-    const ordersSnap = await db.collection('orders')
-      .where('uid', '==', auth.currentUser.uid)
-      .where('status', '==', 'approved')
-      .get();
-
-    const approvedOrders = ordersSnap.docs.map(doc => doc.data());
-
-    loadingMsg.style.display = 'none';
-
-    if(approvedOrders.length === 0){
-      emptyMsg.style.display = 'block';
-      return;
-    }
-
-    // نجيب كل فيديوهات الصف ده مرة واحدة، وبعدين نوزعها على الكورسات
-    const videosSnap = await db.collection('videos')
-      .where('grade', '==', PAGE_GRADE)
-      .get();
-    const allVideos = videosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-    enrolledOrdersCache = approvedOrders;
-    enrolledVideosCache = allVideos;
-
-    picker.innerHTML = approvedOrders.map((order, idx) => `
-      <button class="enrolled-course-circle${idx === 0 ? ' active' : ''}" type="button" data-course-id="${escapeHtml(order.courseId)}">
-        <span class="enrolled-course-circle-badge">${escapeHtml(order.courseTitle || '')}</span>
-        <span class="enrolled-course-circle-label">${escapeHtml(order.courseTitle || '')}</span>
-      </button>
-    `).join('');
-
-    picker.querySelectorAll('.enrolled-course-circle').forEach(btn => {
-      btn.addEventListener('click', () => {
-        picker.querySelectorAll('.enrolled-course-circle').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        showEnrolledCourseVideos(btn.dataset.courseId);
-      });
-    });
-
-    // نعرض فيديوهات أول كورس تلقائيًا
-    showEnrolledCourseVideos(approvedOrders[0].courseId);
-
-  }catch(err){
-    console.error(err);
-    loadingMsg.style.display = 'none';
-    wrap.innerHTML = `<p class="empty-msg">حصل خطأ في تحميل دروسك: ${escapeHtml(err.message)}</p>`;
-  }
-}
-
-function showEnrolledCourseVideos(courseId){
-  const wrap = document.getElementById('enrolledCoursesWrap');
-  const order = enrolledOrdersCache.find(o => o.courseId === courseId);
-  if(!order){ wrap.innerHTML = ''; return; }
-  const courseVideos = enrolledVideosCache
-    .filter(v => v.courseId === courseId)
-    .sort((a, b) => {
-      const ao = typeof a.order === 'number' ? a.order : null;
-      const bo = typeof b.order === 'number' ? b.order : null;
-      if(ao !== null && bo !== null) return ao - bo;
-      if(ao !== null) return -1;
-      if(bo !== null) return 1;
-      return (a.title || '').localeCompare(b.title || '', 'ar');
-    });
-  wrap.innerHTML = renderEnrolledCourseBlock(order, courseVideos);
-}
-
-function youtubeThumb(url){
-  if(!url) return '';
-  const match = url.match(/(?:youtu\.be\/|v=|\/embed\/|\/shorts\/)([A-Za-z0-9_-]{6,})/);
-  const id = match ? match[1] : null;
-  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
-}
-
-function renderEnrolledCourseBlock(order, videos){
-  const videosHtml = videos.length
-    ? videos.map((v, idx) => `
-        <a class="video-thumb-card" href="watch.html?video=${encodeURIComponent(v.id)}">
-          <div class="video-thumb-img-wrap">
-            ${youtubeThumb(v.videoUrl) ? `<img src="${escapeHtml(youtubeThumb(v.videoUrl))}" alt="${escapeHtml(v.title || '')}" loading="lazy">` : ''}
-            <span class="video-thumb-play" aria-hidden="true">▶</span>
-          </div>
-          <div class="video-thumb-body">
-            <h4>الدرس ${idx + 1}: ${escapeHtml(v.title || '')}</h4>
-            <p>${escapeHtml(v.details || '')}</p>
-          </div>
-        </a>
-      `).join('')
-    : `<p class="empty-msg">لسه مفيش فيديوهات مرفوعة للكورس ده</p>`;
-
-  return `
-    <div class="enrolled-course-block">
-      <h2 class="enrolled-course-title">${escapeHtml(order.courseTitle || '')}</h2>
-      <div class="videos-grid">${videosHtml}</div>
-    </div>
-  `;
-}
-
-// =========================================================
-// تاب نشاطي: قايمة الفيديوهات اللي اتفتحت وتاريخ فتحها
-// =========================================================
-async function loadActivity(){
-  const loadingMsg = document.getElementById('activityLoadingMsg');
-  const emptyMsg = document.getElementById('activityEmptyMsg');
-  const list = document.getElementById('activityList');
-
-  loadingMsg.style.display = 'block';
-  emptyMsg.style.display = 'none';
-  list.innerHTML = '';
-
-  try{
-    const snap = await db.collection('students').doc(currentStudentId)
-      .collection('activity')
-      .orderBy('watchedAt', 'desc')
-      .limit(50)
-      .get();
-
-    loadingMsg.style.display = 'none';
-
-    if(snap.empty){
-      emptyMsg.style.display = 'block';
-      return;
-    }
-
-    list.innerHTML = snap.docs.map(doc => {
-      const a = doc.data();
-      const date = a.watchedAt?.toDate ? a.watchedAt.toDate() : null;
-      const dateStr = date ? date.toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
-      return `
-        <div class="activity-item">
-          <span class="activity-icon" aria-hidden="true">▶</span>
-          <div class="activity-info">
-            <h4>${escapeHtml(a.videoTitle || 'فيديو')}</h4>
-            <span class="activity-date">${escapeHtml(dateStr)}</span>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-  }catch(err){
-    console.error(err);
-    loadingMsg.style.display = 'none';
-    // لو الاستعلام محتاج index مركب لسه متعمولش، نعرض رسالة واضحة بدل ما نكسر الصفحة
-    list.innerHTML = `<p class="empty-msg">حصل خطأ في تحميل نشاطك: ${escapeHtml(err.message)}</p>`;
-  }
 }
 
 // ============ القائمة الجانبية: فتح / قفل ============
