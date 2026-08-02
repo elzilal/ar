@@ -156,13 +156,18 @@
   font-size: .88rem;
   color: var(--ink-soft);
 }
-.sec-tabs{
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 20px 6vw 0;
+.sec-header .sec-tabs{
+  max-width: 1200px;
+  margin: 14px auto 0;
+  padding: 14px 6vw 0;
+  border-top: 1px solid color-mix(in srgb, var(--gold) 25%, transparent);
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+@media (max-width: 640px){
+  .sec-header .sec-tabs{ gap: 6px; margin-top: 10px; padding-top: 10px; }
+  .sec-header .sec-tabs .sec-tab{ padding: 8px 14px; font-size: .78rem; }
 }
 .sec-tab{
   padding: 10px 22px;
@@ -183,20 +188,51 @@
 }
 .sec-tab-panel{ display: none; }
 .sec-tab-panel.active{ display: block; }
-.enrolled-course-block{ margin-bottom: 44px; }
-.enrolled-course-title{
-  font-family: var(--font-display);
-  font-size: 1.4rem;
+.enrolled-course-block{ margin-bottom: 22px; }
+.enrolled-course-chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--gold) 60%, transparent);
+  background: linear-gradient(135deg, var(--gold), var(--olive));
   color: var(--maroon);
-  margin: 0 0 18px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
 }
-[data-theme="dark"] .enrolled-course-title{ color: var(--gold); }
+.enrolled-course-chip:hover{
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+.enrolled-course-chip .chip-arrow{
+  font-size: .8rem;
+  transition: transform .25s ease;
+}
+.enrolled-course-block.open .enrolled-course-chip .chip-arrow{
+  transform: rotate(180deg);
+}
+.enrolled-course-block .videos-grid{
+  display: none;
+  margin-top: 20px;
+}
+.enrolled-course-block.open .videos-grid{
+  display: grid;
+}
+/* الفيديوهات نازلة لتحت بالترتيب: كل صف فيه تلت فيديوهات بالظبط */
 .videos-grid{
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 18px;
+}
+@media (max-width: 780px){
+  .videos-grid{ grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px){
+  .videos-grid{ grid-template-columns: 1fr; }
 }
 .video-thumb-card{
   display: flex;
@@ -281,7 +317,7 @@
   margin: 0 auto;
   padding: 50px 6vw 90px;
 }
-.sec-page .section-head{ text-align: center; margin-bottom: 40px; }
+.sec-page .section-head{ text-align: right; margin-bottom: 40px; }
 .sec-page .section-eyebrow{ color: var(--olive); font-weight: 700; margin: 0 0 8px; }
 .sec-page h1{
   font-family: var(--font-display);
