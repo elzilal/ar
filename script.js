@@ -74,10 +74,39 @@ function closeAllSheetsAndPanel() {
   const sidePanelOverlay = document.getElementById('sidePanelOverlay');
   if (sidePanel) sidePanel.classList.remove('open');
   if (sidePanelOverlay) sidePanelOverlay.classList.remove('open');
+  const profilePage = document.getElementById('profilePage');
+  if (profilePage) profilePage.classList.remove('open');
 }
 
 const teacherSheetCtrl = initSheet('teacherSheet', 'teacherSheetOverlay', 'teacherSheetHandle', ['navTeacherInfo']);
-const profileSheetCtrl = initSheet('profileSheet', 'profileSheetOverlay', 'profileSheetHandle', ['navProfile']);
+
+/* ---- صفحة الحساب: صفحة كاملة بدل الشاشة المنبثقة ---- */
+function initProfilePage() {
+  const page = document.getElementById('profilePage');
+  const openBtn = document.getElementById('navProfile');
+  if (!page || !openBtn) return { open: () => {}, close: () => {} };
+
+  function open() {
+    closeAllSheetsAndPanel();
+    page.classList.add('open');
+  }
+  function close() {
+    page.classList.remove('open');
+    const navHome = document.getElementById('navHome');
+    if (navHome) {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      navHome.classList.add('active');
+    }
+  }
+
+  openBtn.addEventListener('click', open);
+
+  const backBtn = document.getElementById('backHomeBtn');
+  if (backBtn) backBtn.addEventListener('click', close);
+
+  return { open, close };
+}
+const profilePageCtrl = initProfilePage();
 
 (function initSidePanel() {
   const panel = document.getElementById('sidePanel');
@@ -108,6 +137,7 @@ const profileSheetCtrl = initSheet('profileSheet', 'profileSheetOverlay', 'profi
   navHome.classList.add('active');
 
   document.getElementById('navTeacherInfo')?.addEventListener('click', () => {
+    profilePageCtrl.close();
     navItems.forEach(i => i.classList.remove('active'));
     document.getElementById('navTeacherInfo').classList.add('active');
   });
@@ -116,6 +146,7 @@ const profileSheetCtrl = initSheet('profileSheet', 'profileSheetOverlay', 'profi
     document.getElementById('navProfile').classList.add('active');
   });
   navHome.addEventListener('click', () => {
+    profilePageCtrl.close();
     navItems.forEach(i => i.classList.remove('active'));
     navHome.classList.add('active');
   });
