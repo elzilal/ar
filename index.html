@@ -12,11 +12,33 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script>
+  (function(){
+    var saved = localStorage.getItem('alzilal-theme');
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if(saved === 'dark' || (!saved && prefersDark)){
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  })();
+</script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
+<!-- ============ شاشة البداية (Splash) ============ -->
+<div id="appSplash">
+  <div class="splash-inner">
+    <span class="splash-brand">الظلال</span>
+    <div class="splash-rings" aria-hidden="true">
+      <span class="splash-ring splash-ring-1"></span>
+      <span class="splash-ring splash-ring-2"></span>
+      <span class="splash-ring splash-ring-3"></span>
+    </div>
+    <p class="splash-status" id="splashStatus">جاري التأكد من وجود حساب خاص بك...</p>
+  </div>
+</div>
 
 
 <!-- ============ خلفية زخرفية ============ -->
@@ -127,14 +149,6 @@
 
 <!-- ============ صفحة كاملة: الملف الشخصي (تظهر فوق المحتوى) ============ -->
 <div class="app-page" id="profilePage">
-  <div class="app-page-topbar">
-    <button class="back-home-btn" id="backHomeBtn" type="button">
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span>الرجوع للصفحة الرئيسية</span>
-    </button>
-  </div>
   <div class="app-page-inner" id="profileSheetContent">
     <!-- تُملأ ديناميكيًا: ضيف أو بيانات الطالب -->
   </div>
