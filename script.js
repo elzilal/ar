@@ -1,3 +1,7 @@
+/* =========================================================
+   شاشة البداية (Splash) — تتأكد من حالة تسجيل الدخول
+   وتوجّه الطالب المسجل لصفحة كورساته تلقائيًا
+   ========================================================= */
 (function initSplash() {
   const splash = document.getElementById('appSplash');
   const statusEl = document.getElementById('splashStatus');
@@ -10,26 +14,31 @@
     if (settled) return;
     settled = true;
     splash.classList.add('splash-hidden');
-    setTimeout(() => splash.remove(), 500);
+    setTimeout(() => splash.remove(), 350);
   }
 
   function setStatus(text) {
     if (statusEl) statusEl.textContent = text;
   }
 
-
-  const safetyTimeout = setTimeout(hideSplash, 6000);
+  // أمان مطلق: مهما حصل (حتى لو Firebase نفسه فشل يحمّل من الـ CDN)
+  // السبلاش لازم يختفي بعد 3 ثواني بالظبط ومحدش يفضل واقف قدامه.
+  const safetyTimeout = setTimeout(hideSplash, 3000);
 
   if (typeof auth === 'undefined') {
     hideSplash();
     return;
   }
 
+  let authTimedOut = false;
+  const authWaitTimeout = setTimeout(() => { authTimedOut = true; }, 3000);
+
   auth.onAuthStateChanged(async (user) => {
-    if (settled) return;
+    if (settled || authTimedOut) return;
 
     if (!user) {
       clearTimeout(safetyTimeout);
+      clearTimeout(authWaitTimeout);
       hideSplash();
       return;
     }
@@ -39,6 +48,7 @@
     }
     if (!user || !user.email || !user.email.endsWith('@elzilal-student.app')) {
       clearTimeout(safetyTimeout);
+      clearTimeout(authWaitTimeout);
       hideSplash();
       return;
     }
@@ -49,29 +59,34 @@
       const snap = await db.collection('students').doc(phone).get();
       if (!snap.exists) {
         clearTimeout(safetyTimeout);
+        clearTimeout(authWaitTimeout);
         hideSplash();
         return;
       }
       const student = snap.data();
       if (student.status !== 'approved') {
         clearTimeout(safetyTimeout);
+        clearTimeout(authWaitTimeout);
         hideSplash();
         return;
       }
       const target = GRADE_URL[String(student.grade)];
       if (!target) {
         clearTimeout(safetyTimeout);
+        clearTimeout(authWaitTimeout);
         hideSplash();
         return;
       }
 
       clearTimeout(safetyTimeout);
+      clearTimeout(authWaitTimeout);
       settled = true;
       setStatus('جاري تحويلك لحسابك...');
       window.location.replace(target);
     } catch (err) {
       console.error(err);
       clearTimeout(safetyTimeout);
+      clearTimeout(authWaitTimeout);
       hideSplash();
     }
   });
@@ -106,6 +121,9 @@
   }
 })();
 
+/* =========================================================
+   شاشات منبثقة (Bottom Sheets) + اللوحة الجانبية
+   ========================================================= */
 function initSheet(sheetId, overlayId, handleId, openTriggerIds) {
   const sheet = document.getElementById(sheetId);
   const overlay = document.getElementById(overlayId);
@@ -205,7 +223,7 @@ const profilePageCtrl = initProfilePage();
   const navHome = document.getElementById('navHome');
   const navItems = document.querySelectorAll('.nav-item');
   if (!navHome) return;
-  
+  // الرئيسية محددة افتراضيًا عند دخول الصفحة
   navItems.forEach(i => i.classList.remove('active'));
   navHome.classList.add('active');
 
@@ -225,6 +243,9 @@ const profilePageCtrl = initProfilePage();
   });
 })();
 
+/* =========================================================
+   شاشة الملف الشخصي — ضيف أو بيانات الطالب من Firebase
+   ========================================================= */
 (function initProfileSheetContent() {
   const contentEl = document.getElementById('profileSheetContent');
   if (!contentEl) return;
