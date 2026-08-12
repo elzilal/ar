@@ -27,22 +27,203 @@
   }
 })();
 
-(function initMobileMenu() {
-  const menuToggle = document.getElementById('menuToggle');
-  const mobileMenu = document.getElementById('mobileMenu');
-  if (!menuToggle ||!mobileMenu) return;
+/* =========================================================
+   شاشات منبثقة (Bottom Sheets) + اللوحة الجانبية
+   ========================================================= */
+function initSheet(sheetId, overlayId, handleId, openTriggerIds) {
+  const sheet = document.getElementById(sheetId);
+  const overlay = document.getElementById(overlayId);
+  if (!sheet || !overlay) return { open: () => {}, close: () => {} };
 
-  menuToggle.addEventListener('click', () => {
-    const isOpen = mobileMenu.classList.toggle('open');
-    menuToggle.setAttribute('aria-expanded', isOpen? 'true' : 'false');
+  function open() {
+    closeAllSheetsAndPanel();
+    sheet.classList.add('open');
+    overlay.classList.add('open');
+  }
+  function close() {
+    sheet.classList.remove('open');
+    overlay.classList.remove('open');
+  }
+
+  overlay.addEventListener('click', close);
+  const handle = handleId ? document.getElementById(handleId) : null;
+  if (handle) handle.addEventListener('click', close);
+
+  // سحب لأسفل لإغلاق الشاشة (لمس)
+  let startY = null;
+  sheet.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; }, { passive: true });
+  sheet.addEventListener('touchmove', (e) => {
+    if (startY === null) return;
+    const diff = e.touches[0].clientY - startY;
+    if (diff > 90) { close(); startY = null; }
+  }, { passive: true });
+  sheet.addEventListener('touchend', () => { startY = null; });
+
+  (openTriggerIds || []).forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', open);
   });
 
-  mobileMenu.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      mobileMenu.classList.remove('open');
-      menuToggle.setAttribute('aria-expanded', 'false');
-    });
+  return { open, close };
+}
+
+function closeAllSheetsAndPanel() {
+  document.querySelectorAll('.bottom-sheet.open').forEach(s => s.classList.remove('open'));
+  document.querySelectorAll('.sheet-overlay.open').forEach(o => o.classList.remove('open'));
+  const sidePanel = document.getElementById('sidePanel');
+  const sidePanelOverlay = document.getElementById('sidePanelOverlay');
+  if (sidePanel) sidePanel.classList.remove('open');
+  if (sidePanelOverlay) sidePanelOverlay.classList.remove('open');
+}
+
+const teacherSheetCtrl = initSheet('teacherSheet', 'teacherSheetOverlay', 'teacherSheetHandle', ['navTeacherInfo']);
+const profileSheetCtrl = initSheet('profileSheet', 'profileSheetOverlay', 'profileSheetHandle', ['navProfile']);
+
+(function initSidePanel() {
+  const panel = document.getElementById('sidePanel');
+  const overlay = document.getElementById('sidePanelOverlay');
+  const fabBtn = document.getElementById('sideFabBtn');
+  if (!panel || !overlay || !fabBtn) return;
+
+  function open() {
+    closeAllSheetsAndPanel();
+    panel.classList.add('open');
+    overlay.classList.add('open');
+  }
+  function close() {
+    panel.classList.remove('open');
+    overlay.classList.remove('open');
+  }
+
+  fabBtn.addEventListener('click', open);
+  overlay.addEventListener('click', close);
+})();
+
+(function initBottomNavActiveState() {
+  const navHome = document.getElementById('navHome');
+  const navItems = document.querySelectorAll('.nav-item');
+  if (!navHome) return;
+  // الرئيسية محددة افتراضيًا عند دخول الصفحة
+  navItems.forEach(i => i.classList.remove('active'));
+  navHome.classList.add('active');
+
+  document.getElementById('navTeacherInfo')?.addEventListener('click', () => {
+    navItems.forEach(i => i.classList.remove('active'));
+    document.getElementById('navTeacherInfo').classList.add('active');
   });
+  document.getElementById('navProfile')?.addEventListener('click', () => {
+    navItems.forEach(i => i.classList.remove('active'));
+    document.getElementById('navProfile').classList.add('active');
+  });
+  navHome.addEventListener('click', () => {
+    navItems.forEach(i => i.classList.remove('active'));
+    navHome.classList.add('active');
+  });
+})();
+
+/* =========================================================
+   شاشة الملف الشخصي — ضيف أو بيانات الطالب من Firebase
+   ========================================================= */
+(function initProfileSheetContent() {
+  const contentEl = document.getElementById('profileSheetContent');
+  if (!contentEl) return;
+
+  const gradeLabels = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  function renderGuest() {
+    contentEl.innerHTML = `
+      <div class="profile-guest">
+        <div class="profile-guest-avatar">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+            <path d="M4 20c1.8-4 5-6 8-6s6.2 2 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h2>مرحبًا بيك</h2>
+        <p>سجّل دخولك أو اعمل حساب جديد عشان تقدر تتابع كورساتك</p>
+        <div class="profile-guest-actions">
+          <a href="login.html" class="btn btn-solid">تسجيل الدخول</a>
+          <a href="signup.html" class="btn btn-ghost">إنشاء حساب</a>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderLoading() {
+    contentEl.innerHTML = `
+      <div class="profile-guest">
+        <p class="loading-msg">جاري تحميل بياناتك...</p>
+      </div>
+    `;
+  }
+
+  function renderStudent(data) {
+    contentEl.innerHTML = `
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-avatar">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+              <path d="M4 20c1.8-4 5-6 8-6s6.2 2 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h2>${escapeHtml(data.studentName)}</h2>
+          <span class="profile-grade">${escapeHtml(gradeLabels[data.grade] || data.grade || '')}</span>
+        </div>
+        <div class="profile-fields">
+          <div class="profile-field">
+            <span class="field-label">رقم الطالب</span>
+            <span class="field-value">${escapeHtml(data.studentPhone)}</span>
+          </div>
+          <div class="profile-field">
+            <span class="field-label">رقم ولي الأمر</span>
+            <span class="field-value">${escapeHtml(data.parentPhone)}</span>
+          </div>
+          <div class="profile-field">
+            <span class="field-label">المحافظة</span>
+            <span class="field-value">${escapeHtml(data.governorate)}</span>
+          </div>
+          <div class="profile-field">
+            <span class="field-label">المدينة</span>
+            <span class="field-value">${escapeHtml(data.city)}</span>
+          </div>
+          <div class="profile-field">
+            <span class="field-label">القرية / الحي</span>
+            <span class="field-value">${escapeHtml(data.village)}</span>
+          </div>
+        </div>
+        <a href="account.html" class="profile-logout">الدخول إلى حسابك</a>
+      </div>
+    `;
+  }
+
+  renderGuest();
+
+  document.getElementById('navProfile')?.addEventListener('click', () => {
+    if (typeof auth === 'undefined') { renderGuest(); return; }
+    const current = auth.currentUser;
+    if (!current) { renderGuest(); return; }
+    renderLoading();
+    if (typeof db === 'undefined') { renderGuest(); return; }
+    db.collection('students').doc(current.uid).get()
+      .then(doc => {
+        if (doc.exists) {
+          renderStudent(doc.data());
+        } else {
+          renderGuest();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        renderGuest();
+      });
+  }, { once: false });
 })();
 
 (function initHeaderScroll() {
@@ -72,7 +253,6 @@
 (function loadHomeData() {
   const coursesGrid = document.getElementById('coursesGrid');
   const teacherBio = document.getElementById('teacherBio');
-  const socialLinks = document.getElementById('socialLinks');
 
   if (!coursesGrid &&!teacherBio &&!document.getElementById('whyUsGrid')) return;
 
@@ -150,6 +330,19 @@
     if (teacherBio && Array.isArray(teacher.bio)) {
       teacherBio.innerHTML = teacher.bio.map(p => `<p>${escapeHtml(p)}</p>`).join('');
     }
+
+    // نفس بيانات المعلم تتملى في الشاشة المنبثقة (نص الشريط السفلي)
+    const sheetName = document.getElementById('sheetTeacherName');
+    const sheetRole = document.getElementById('sheetTeacherRole');
+    const sheetHighlight = document.getElementById('sheetTeacherHighlight');
+    const sheetBio = document.getElementById('sheetTeacherBio');
+
+    if (sheetName && teacher.name) sheetName.textContent = teacher.name;
+    if (sheetRole && teacher.role) sheetRole.textContent = teacher.role;
+    if (sheetHighlight && teacher.highlight) sheetHighlight.textContent = teacher.highlight;
+    if (sheetBio && Array.isArray(teacher.bio)) {
+      sheetBio.innerHTML = teacher.bio.map(p => `<p>${escapeHtml(p)}</p>`).join('');
+    }
   }
 
   function renderWhyUs(whyUs) {
@@ -176,8 +369,8 @@
   }
 
   function renderSocial(social) {
-    if (!socialLinks ||!social) return;
-    socialLinks.querySelectorAll('[data-social]').forEach(link => {
+    if (!social) return;
+    document.querySelectorAll('[data-social]').forEach(link => {
       const key = link.dataset.social;
       if (social[key]) link.setAttribute('href', social[key]);
     });
