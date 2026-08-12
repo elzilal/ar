@@ -60,9 +60,10 @@
 <div class="side-fab-wrap">
   <button class="side-fab" id="sideFabBtn" type="button" aria-label="تواصل معنا">
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-      <path d="M8 10a4 4 0 118 0c0 2-2 2.5-2 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="12" cy="17.5" r="1" fill="currentColor"/>
+      <path d="M4 13.5v-2A8 8 0 0120 11.5v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="2.8" y="12.5" width="4" height="6" rx="1.8" stroke="currentColor" stroke-width="1.8"/>
+      <rect x="17.2" y="12.5" width="4" height="6" rx="1.8" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M19.2 18.5v.7a3 3 0 01-3 3h-3.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
     </svg>
   </button>
 </div>
@@ -124,11 +125,17 @@
   </div>
 </div>
 
-<!-- ============ الشاشة المنبثقة: الملف الشخصي ============ -->
-<div class="sheet-overlay" id="profileSheetOverlay"></div>
-<div class="bottom-sheet" id="profileSheet">
-  <div class="sheet-handle-wrap" id="profileSheetHandle"><span class="sheet-handle"></span></div>
-  <div class="sheet-content" id="profileSheetContent">
+<!-- ============ صفحة كاملة: الملف الشخصي (تظهر فوق المحتوى) ============ -->
+<div class="app-page" id="profilePage">
+  <div class="app-page-topbar">
+    <button class="back-home-btn" id="backHomeBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>الرجوع للصفحة الرئيسية</span>
+    </button>
+  </div>
+  <div class="app-page-inner" id="profileSheetContent">
     <!-- تُملأ ديناميكيًا: ضيف أو بيانات الطالب -->
   </div>
 </div>
@@ -195,34 +202,18 @@
     </div>
   </section>
 
-  <!-- ============ قسم المدرس ============ -->
-  <section class="about-teacher" id="about">
-    <div class="about-inner">
-      <h2 id="teacherName">مستر عبد المنعم حلمي</h2>
-      <p class="teacher-role" id="teacherRole">مدرس لغة عربية أول وموجه — خبرة 15 سنة</p>
-
-      <div class="teacher-bio" id="teacherBio">
-        <!-- تُملأ من data.json -->
-      </div>
-
-      <div class="teacher-highlight" id="teacherHighlight">نحو • بلاغة • نصوص • صرف</div>
-    </div>
-  </section>
-
-
 </main>
 
 <!-- ============ الشريط السفلي (Bottom Navigation) ============ -->
 <nav class="app-bottomnav" id="appBottomnav">
   <div class="app-bottomnav-inner">
 
-    <button class="nav-item" id="navTeacherInfo" type="button" aria-label="عن المعلم">
+    <button class="nav-item" id="navProfile" type="button" aria-label="حسابي">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-        <path d="M12 11v5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="12" cy="8" r="1.1" fill="currentColor"/>
+        <circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="2"/>
+        <path d="M4.5 19.5c1.5-3.5 4.5-5 7.5-5s6 1.5 7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
-      <span>عن المعلم</span>
+      <span>حسابي</span>
     </button>
 
     <button class="nav-item center-item active" id="navHome" type="button" aria-label="الرئيسية">
@@ -234,12 +225,13 @@
       <span>الرئيسية</span>
     </button>
 
-    <button class="nav-item" id="navProfile" type="button" aria-label="حسابي">
+    <button class="nav-item" id="navTeacherInfo" type="button" aria-label="عن المعلم">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="2"/>
-        <path d="M4.5 19.5c1.5-3.5 4.5-5 7.5-5s6 1.5 7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+        <path d="M12 11v5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="12" cy="8" r="1.1" fill="currentColor"/>
       </svg>
-      <span>حسابي</span>
+      <span>عن المعلم</span>
     </button>
 
   </div>
