@@ -1,7 +1,3 @@
-/* =========================================================
-   شاشة البداية (Splash) — تتأكد من حالة تسجيل الدخول
-   وتوجّه الطالب المسجل لصفحة كورساته تلقائيًا
-   ========================================================= */
 (function initSplash() {
   const splash = document.getElementById('appSplash');
   const statusEl = document.getElementById('splashStatus');
@@ -20,9 +16,7 @@
   function setStatus(text) {
     if (statusEl) statusEl.textContent = text;
   }
-
-  // أمان مطلق: مهما حصل (حتى لو Firebase نفسه فشل يحمّل من الـ CDN)
-  // السبلاش لازم يختفي بعد 3 ثواني بالظبط ومحدش يفضل واقف قدامه.
+   
   const safetyTimeout = setTimeout(hideSplash, 3000);
 
   if (typeof auth === 'undefined') {
@@ -121,9 +115,6 @@
   }
 })();
 
-/* =========================================================
-   شاشات منبثقة (Bottom Sheets) + اللوحة الجانبية
-   ========================================================= */
 function initSheet(sheetId, overlayId, handleId, openTriggerIds) {
   const sheet = document.getElementById(sheetId);
   const overlay = document.getElementById(overlayId);
@@ -143,7 +134,7 @@ function initSheet(sheetId, overlayId, handleId, openTriggerIds) {
   const handle = handleId ? document.getElementById(handleId) : null;
   if (handle) handle.addEventListener('click', close);
 
-  // سحب لأسفل لإغلاق الشاشة (لمس)
+
   let startY = null;
   sheet.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; }, { passive: true });
   sheet.addEventListener('touchmove', (e) => {
@@ -174,7 +165,7 @@ function closeAllSheetsAndPanel() {
 
 const teacherSheetCtrl = initSheet('teacherSheet', 'teacherSheetOverlay', 'teacherSheetHandle', ['navTeacherInfo']);
 
-/* ---- صفحة الحساب: صفحة كاملة بدل الشاشة المنبثقة ---- */
+
 function initProfilePage() {
   const page = document.getElementById('profilePage');
   const openBtn = document.getElementById('navProfile');
@@ -223,7 +214,7 @@ const profilePageCtrl = initProfilePage();
   const navHome = document.getElementById('navHome');
   const navItems = document.querySelectorAll('.nav-item');
   if (!navHome) return;
-  // الرئيسية محددة افتراضيًا عند دخول الصفحة
+
   navItems.forEach(i => i.classList.remove('active'));
   navHome.classList.add('active');
 
@@ -243,9 +234,7 @@ const profilePageCtrl = initProfilePage();
   });
 })();
 
-/* =========================================================
-   شاشة الملف الشخصي — ضيف أو بيانات الطالب من Firebase
-   ========================================================= */
+
 (function initProfileSheetContent() {
   const contentEl = document.getElementById('profileSheetContent');
   if (!contentEl) return;
