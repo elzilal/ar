@@ -1,3 +1,82 @@
+(function initSplash() {
+  const splash = document.getElementById('appSplash');
+  const statusEl = document.getElementById('splashStatus');
+  if (!splash) return;
+
+  const GRADE_URL = { '1': 'sec1.html', '2': 'sec2.html', '3': 'sec3.html' };
+  let settled = false;
+
+  function hideSplash() {
+    if (settled) return;
+    settled = true;
+    splash.classList.add('splash-hidden');
+    setTimeout(() => splash.remove(), 500);
+  }
+
+  function setStatus(text) {
+    if (statusEl) statusEl.textContent = text;
+  }
+
+
+  const safetyTimeout = setTimeout(hideSplash, 6000);
+
+  if (typeof auth === 'undefined') {
+    hideSplash();
+    return;
+  }
+
+  auth.onAuthStateChanged(async (user) => {
+    if (settled) return;
+
+    if (!user) {
+      clearTimeout(safetyTimeout);
+      hideSplash();
+      return;
+    }
+
+    if (!user.email) {
+      try { await user.reload(); user = auth.currentUser; } catch (e) { /* ignore */ }
+    }
+    if (!user || !user.email || !user.email.endsWith('@elzilal-student.app')) {
+      clearTimeout(safetyTimeout);
+      hideSplash();
+      return;
+    }
+
+    const phone = user.email.replace('@elzilal-student.app', '');
+
+    try {
+      const snap = await db.collection('students').doc(phone).get();
+      if (!snap.exists) {
+        clearTimeout(safetyTimeout);
+        hideSplash();
+        return;
+      }
+      const student = snap.data();
+      if (student.status !== 'approved') {
+        clearTimeout(safetyTimeout);
+        hideSplash();
+        return;
+      }
+      const target = GRADE_URL[String(student.grade)];
+      if (!target) {
+        clearTimeout(safetyTimeout);
+        hideSplash();
+        return;
+      }
+
+      clearTimeout(safetyTimeout);
+      settled = true;
+      setStatus('جاري تحويلك لحسابك...');
+      window.location.replace(target);
+    } catch (err) {
+      console.error(err);
+      clearTimeout(safetyTimeout);
+      hideSplash();
+    }
+  });
+})();
+
 (function initTheme() {
   const root = document.documentElement;
   const themeToggle = document.getElementById('themeToggle');
@@ -27,9 +106,6 @@
   }
 })();
 
-/* =========================================================
-   شاشات منبثقة (Bottom Sheets) + اللوحة الجانبية
-   ========================================================= */
 function initSheet(sheetId, overlayId, handleId, openTriggerIds) {
   const sheet = document.getElementById(sheetId);
   const overlay = document.getElementById(overlayId);
@@ -101,9 +177,6 @@ function initProfilePage() {
 
   openBtn.addEventListener('click', open);
 
-  const backBtn = document.getElementById('backHomeBtn');
-  if (backBtn) backBtn.addEventListener('click', close);
-
   return { open, close };
 }
 const profilePageCtrl = initProfilePage();
@@ -132,7 +205,7 @@ const profilePageCtrl = initProfilePage();
   const navHome = document.getElementById('navHome');
   const navItems = document.querySelectorAll('.nav-item');
   if (!navHome) return;
-  // الرئيسية محددة افتراضيًا عند دخول الصفحة
+  
   navItems.forEach(i => i.classList.remove('active'));
   navHome.classList.add('active');
 
@@ -152,9 +225,6 @@ const profilePageCtrl = initProfilePage();
   });
 })();
 
-/* =========================================================
-   شاشة الملف الشخصي — ضيف أو بيانات الطالب من Firebase
-   ========================================================= */
 (function initProfileSheetContent() {
   const contentEl = document.getElementById('profileSheetContent');
   if (!contentEl) return;
